@@ -628,6 +628,12 @@
     <Compile Include="src\OCTO_ADC.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\OCTO_DAC.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\OCTO_DAC.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\OCTO_I2C.c">
       <SubType>compile</SubType>
     </Compile>

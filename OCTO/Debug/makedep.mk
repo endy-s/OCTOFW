@@ -4,6 +4,8 @@
 
 src\OCTO_ADC.c
 
+src\OCTO_DAC.c
+
 src\OCTO_I2C.c
 
 src\OCTO_USART.c

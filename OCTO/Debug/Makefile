@@ -100,6 +100,7 @@ SUBDIRS :=  \
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../src/OCTO_ADC.c \
+../src/OCTO_DAC.c \
 ../src/OCTO_I2C.c \
 ../src/OCTO_USART.c \
 ../src/ASF/sam0/drivers/adc/adc_sam_d_r/adc.c \
@@ -134,6 +135,7 @@ ASM_SRCS +=
 
 OBJS +=  \
 src/OCTO_ADC.o \
+src/OCTO_DAC.o \
 src/OCTO_I2C.o \
 src/OCTO_USART.o \
 src/ASF/sam0/drivers/adc/adc_sam_d_r/adc.o \
@@ -161,6 +163,7 @@ src/main.o
 
 OBJS_AS_ARGS +=  \
 src/OCTO_ADC.o \
+src/OCTO_DAC.o \
 src/OCTO_I2C.o \
 src/OCTO_USART.o \
 src/ASF/sam0/drivers/adc/adc_sam_d_r/adc.o \
@@ -188,6 +191,7 @@ src/main.o
 
 C_DEPS +=  \
 src/OCTO_ADC.d \
+src/OCTO_DAC.d \
 src/OCTO_I2C.d \
 src/OCTO_USART.d \
 src/ASF/sam0/drivers/adc/adc_sam_d_r/adc.d \
@@ -215,6 +219,7 @@ src/main.d
 
 C_DEPS_AS_ARGS +=  \
 src/OCTO_ADC.d \
+src/OCTO_DAC.d \
 src/OCTO_I2C.d \
 src/OCTO_USART.d \
 src/ASF/sam0/drivers/adc/adc_sam_d_r/adc.d \
@@ -255,6 +260,8 @@ LINKER_SCRIPT_DEP+=  \
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

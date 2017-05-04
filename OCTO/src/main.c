@@ -33,6 +33,9 @@
 #include "OCTO_ADC.h"
 #include "OCTO_I2C.h"
 #include "OCTO_USART.h"
+#include "OCTO_DAC.h"
+
+void configure_OCTO_peripheral(void);
 
 //====================================================
 // Local Defines
@@ -48,29 +51,53 @@ int main (void)
 
 	/* Insert application code here, after the board has been initialized. */
     
-    //! [setup_init]
-    configure_usart();
-    configure_usart_callbacks();
-    //! [setup_init]
-
-    //! [main]
-    //! [enable_global_interrupts]
-    system_interrupt_enable_global();
-    //! [enable_global_interrupts]
-
-    //! [main_send_string]
-    //uint8_t string[] = "Hello World!\r\n";
-    //usart_write_buffer_wait(&usart_instance, string, sizeof(string));
-    //! [main_send_string]
-    
-    /* Configure device and enable. */
-    configure_gas_gauge();
+    configure_OCTO_peripheral();
+    uint8_t led_bright = 0;
     
     //! [main_loop]
     while (true) {
+        
+        set_led_bright_percent(led_bright);
+        
+        if (++led_bright >= 99) 
+        {
+            led_bright = 0;
+        }
+        
         //! [main_loop]
         //! [main_read]
        // usart_read_buffer_job(&usart_instance, (uint8_t *)rx_buffer, MAX_RX_BUFFER_LENGTH);
         //! [main_read]
     }
+}
+
+
+void configure_OCTO_peripheral()
+{
+    // Led Green On
+    port_pin_set_output_level(LED_GREEN_PIN, LED_GREEN_ACTIVE);
+    
+    // 
+    configure_usart();
+    configure_usart_callbacks();
+
+    // Enable global interrupts
+    system_interrupt_enable_global();
+
+// Debug USART - Header transmitting
+#ifdef DBG_MODE
+    uint8_t string[] = "\nOCTO Board - ";
+    dbg_usart_write(string);
+    uint8_t string_date[] = __DATE__;
+    dbg_usart_write(string_date);
+    uint8_t string_time[] = __TIME__;
+    dbg_usart_write(string_time);
+#endif
+    
+    // Configure I²C device and enable
+    configure_gas_gauge();
+    
+    // Configure the DAC - LED stripe
+    configure_dac();
+    configure_dac_channel();
 }
