@@ -1,6 +1,7 @@
-src/OCTO_DAC.d src/OCTO_DAC.o: ../src/OCTO_DAC.c ../src/OCTO_DAC.h \
- ../src/asf.h ../src/ASF/sam0/drivers/adc/adc.h \
- ../src/ASF/sam0/utils/compiler.h \
+src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.d \
+ src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.o: \
+ ../src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.c \
+ ../src/ASF/sam0/drivers/rtc/rtc_count.h ../src/ASF/sam0/utils/compiler.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\5.3.1\include\stddef.h \
  ../src/ASF/common/utils/parts.h ../src/ASF/sam0/utils/status_codes.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\5.3.1\include\stdint.h \
@@ -103,45 +104,13 @@ src/OCTO_DAC.d src/OCTO_DAC.o: ../src/OCTO_DAC.c ../src/OCTO_DAC.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\alloca.h \
  ../src/ASF/common/utils/interrupt.h \
  ../src/ASF/common/utils/interrupt/interrupt_sam_nvic.h \
- ../src/ASF/sam0/drivers/system/system.h \
- ../src/ASF/sam0/drivers/system/clock/clock.h \
+ ../src/config/conf_clocks.h ../src/ASF/sam0/drivers/system/clock/clock.h \
  ../src/ASF/sam0/drivers/system/clock/gclk.h \
  ../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/clock_feature.h \
- ../src/ASF/sam0/drivers/system/pinmux/pinmux.h \
- ../src/ASF/sam0/drivers/system/power/power_sam_d_r/power.h \
- ../src/ASF/sam0/drivers/system/reset/reset_sam_d_r/reset.h \
- ../src/ASF/sam0/drivers/adc/adc_sam_d_r/adc_feature.h \
  ../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h \
- ../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h \
- ../src/ASF/sam0/drivers/adc/adc_callback.h \
- ../src/ASF/common2/boards/user_board/user_board.h \
- ../src/config/conf_board.h ../src/ASF/sam0/drivers/dac/dac.h \
- ../src/ASF/sam0/drivers/dac/dac_sam_d_c/dac_feature.h \
- ../src/ASF/sam0/drivers/dac/dac_callback.h \
- ../src/ASF/sam0/drivers/dac/dac.h ../src/ASF/common/boards/board.h \
- ../src/ASF/sam0/drivers/port/port.h \
- ../src/ASF/sam0/drivers/rtc/rtc_count.h ../src/config/conf_clocks.h \
- ../src/ASF/sam0/drivers/rtc/rtc_count_interrupt.h \
- ../src/ASF/sam0/drivers/rtc/rtc_count.h \
- ../src/ASF/sam0/drivers/rtc/rtc_tamper.h \
- ../src/ASF/sam0/drivers/sercom/sercom.h \
- ../src/ASF/sam0/drivers/sercom/sercom_pinout.h \
- ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h \
- ../src/ASF/sam0/drivers/sercom/sercom.h \
- ../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h \
- ../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h \
- ../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h \
- ../src/ASF/sam0/drivers/sercom/i2c/i2c_master_interrupt.h \
- ../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h \
- ../src/ASF/sam0/drivers/sercom/usart/usart.h \
- ../src/ASF/sam0/drivers/sercom/usart/usart_interrupt.h \
- ../src/ASF/sam0/drivers/sercom/usart/usart.h
+ ../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h
 
-../src/OCTO_DAC.h:
-
-../src/asf.h:
-
-../src/ASF/sam0/drivers/adc/adc.h:
+../src/ASF/sam0/drivers/rtc/rtc_count.h:
 
 ../src/ASF/sam0/utils/compiler.h:
 
@@ -351,7 +320,7 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/common/utils/interrupt/interrupt_sam_nvic.h:
 
-../src/ASF/sam0/drivers/system/system.h:
+../src/config/conf_clocks.h:
 
 ../src/ASF/sam0/drivers/system/clock/clock.h:
 
@@ -359,66 +328,6 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/clock_feature.h:
 
-../src/ASF/sam0/drivers/system/pinmux/pinmux.h:
-
-../src/ASF/sam0/drivers/system/power/power_sam_d_r/power.h:
-
-../src/ASF/sam0/drivers/system/reset/reset_sam_d_r/reset.h:
-
-../src/ASF/sam0/drivers/adc/adc_sam_d_r/adc_feature.h:
-
 ../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h:
 
 ../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h:
-
-../src/ASF/sam0/drivers/adc/adc_callback.h:
-
-../src/ASF/common2/boards/user_board/user_board.h:
-
-../src/config/conf_board.h:
-
-../src/ASF/sam0/drivers/dac/dac.h:
-
-../src/ASF/sam0/drivers/dac/dac_sam_d_c/dac_feature.h:
-
-../src/ASF/sam0/drivers/dac/dac_callback.h:
-
-../src/ASF/sam0/drivers/dac/dac.h:
-
-../src/ASF/common/boards/board.h:
-
-../src/ASF/sam0/drivers/port/port.h:
-
-../src/ASF/sam0/drivers/rtc/rtc_count.h:
-
-../src/config/conf_clocks.h:
-
-../src/ASF/sam0/drivers/rtc/rtc_count_interrupt.h:
-
-../src/ASF/sam0/drivers/rtc/rtc_count.h:
-
-../src/ASF/sam0/drivers/rtc/rtc_tamper.h:
-
-../src/ASF/sam0/drivers/sercom/sercom.h:
-
-../src/ASF/sam0/drivers/sercom/sercom_pinout.h:
-
-../src/ASF/sam0/drivers/sercom/sercom_interrupt.h:
-
-../src/ASF/sam0/drivers/sercom/sercom.h:
-
-../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
-
-../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h:
-
-../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
-
-../src/ASF/sam0/drivers/sercom/i2c/i2c_master_interrupt.h:
-
-../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h:
-
-../src/ASF/sam0/drivers/sercom/usart/usart.h:
-
-../src/ASF/sam0/drivers/sercom/usart/usart_interrupt.h:
-
-../src/ASF/sam0/drivers/sercom/usart/usart.h:

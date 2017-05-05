@@ -34,7 +34,12 @@
 #include "OCTO_I2C.h"
 #include "OCTO_USART.h"
 #include "OCTO_DAC.h"
+#include "OCTO_RTC.h"
 
+
+//====================================================
+// Local Prototypes
+//====================================================
 void configure_OCTO_peripheral(void);
 
 //====================================================
@@ -51,18 +56,27 @@ int main (void)
 
 	/* Insert application code here, after the board has been initialized. */
     
+    // Configure all the peripherals for the OCTO Board
     configure_OCTO_peripheral();
+    // Used with the DAC for the led brightness
     uint8_t led_bright = 0;
     
-    //! [main_loop]
+    // RTC timing
+    uint32_t timer = get_tick();
+
     while (true) {
         
-        set_led_bright_percent(led_bright);
-        
-        if (++led_bright >= 99) 
+        if (tick_elapsed(timer) % 2 == 0)
         {
-            led_bright = 0;
+            port_pin_toggle_output_level(LED_RED_PIN);
+            set_led_bright_percent(led_bright);
+            
+            if (++led_bright >= 99)
+            {
+                led_bright = 0;
+            }
         }
+        
         
         //! [main_loop]
         //! [main_read]
@@ -100,4 +114,7 @@ void configure_OCTO_peripheral()
     // Configure the DAC - LED stripe
     configure_dac();
     configure_dac_channel();
+    
+    // Configure the RTC - Used as Tick (1ms)
+    configure_rtc_count();
 }

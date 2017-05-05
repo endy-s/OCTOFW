@@ -2,11 +2,17 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\ASF\sam0\drivers\rtc\rtc_sam_d_r\rtc_count.c
+
+src\ASF\sam0\drivers\rtc\rtc_sam_d_r\rtc_count_interrupt.c
+
 src\OCTO_ADC.c
 
 src\OCTO_DAC.c
 
 src\OCTO_I2C.c
+
+src\OCTO_RTC.c
 
 src\OCTO_USART.c
 

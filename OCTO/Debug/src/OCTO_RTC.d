@@ -1,4 +1,4 @@
-src/OCTO_DAC.d src/OCTO_DAC.o: ../src/OCTO_DAC.c ../src/OCTO_DAC.h \
+src/OCTO_RTC.d src/OCTO_RTC.o: ../src/OCTO_RTC.c ../src/OCTO_RTC.h \
  ../src/asf.h ../src/ASF/sam0/drivers/adc/adc.h \
  ../src/ASF/sam0/utils/compiler.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\5.3.1\include\stddef.h \
@@ -137,7 +137,7 @@ src/OCTO_DAC.d src/OCTO_DAC.o: ../src/OCTO_DAC.c ../src/OCTO_DAC.h \
  ../src/ASF/sam0/drivers/sercom/usart/usart_interrupt.h \
  ../src/ASF/sam0/drivers/sercom/usart/usart.h
 
-../src/OCTO_DAC.h:
+../src/OCTO_RTC.h:
 
 ../src/asf.h:
 
