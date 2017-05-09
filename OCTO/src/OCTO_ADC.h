@@ -11,7 +11,7 @@
 
 #include <asf.h>
 
-char ADC_init (void);
+char configure_adc (void);
 
 
 

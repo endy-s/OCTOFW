@@ -30,26 +30,17 @@ static uint8_t read_buffer[DATA_LENGTH];
 
 void configure_gas_gauge()
 {
-    //! [setup_config]
     struct i2c_master_config config_gas_gauge;
-    //! [setup_config]
-    //! [setup_config_defaults]
-    i2c_master_get_config_defaults(&config_gas_gauge);
-    //! [setup_config_defaults]
     
-    //! [setup_change_config]
+    i2c_master_get_config_defaults(&config_gas_gauge);
+    
     config_gas_gauge.baud_rate   = I2C_MASTER_BAUD_RATE_100KHZ;
     config_gas_gauge.pinmux_pad0 = GAS_GAUGE_I2C_SERCOM_PINMUX_PAD0;
     config_gas_gauge.pinmux_pad1 = GAS_GAUGE_I2C_SERCOM_PINMUX_PAD1;
-    //! [setup_change_config]
     
-    //! [setup_set_config]
     i2c_master_init(&gas_gauge_instance, GAS_GAUGE_I2C_MODULE, &config_gas_gauge);
-    //! [setup_set_config]
-
-    //! [setup_enable]
+    
     i2c_master_enable(&gas_gauge_instance);
-    //! [setup_enable]
 }
 
 char gas_gauge_read()

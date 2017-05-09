@@ -13,6 +13,6 @@
 
 void configure_dac(void);
 void configure_dac_channel(void);
-void set_led_bright_percent(uint8_t percent);
+void set_led_bright_percent(uint16_t perthousand);
 
 #endif /* OCTO_DAC_H_ */
