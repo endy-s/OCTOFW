@@ -2,13 +2,25 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\OCTO_USART.c
+
+src\ASF\common2\services\delay\sam0\systick_counter.c
+
+src\ASF\sam0\drivers\rtc\rtc_sam_d_r\rtc_count.c
+
+src\ASF\sam0\drivers\rtc\rtc_sam_d_r\rtc_count_interrupt.c
+
+src\ASF\sam0\utils\stdio\read.c
+
+src\ASF\sam0\utils\stdio\write.c
+
 src\OCTO_ADC.c
 
 src\OCTO_DAC.c
 
 src\OCTO_I2C.c
 
-src\OCTO_USART.c
+src\OCTO_RTC.c
 
 src\ASF\sam0\drivers\adc\adc_sam_d_r\adc.c
 

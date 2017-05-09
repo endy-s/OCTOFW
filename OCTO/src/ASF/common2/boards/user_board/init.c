@@ -37,6 +37,9 @@ void system_board_init(void)
     port_pin_set_config(LED_GREEN_PIN, &pin_conf);
     port_pin_set_output_level(LED_GREEN_PIN, LED_GREEN_INACTIVE);
 
+    port_pin_set_config(LED_DRIVER_PIN, &pin_conf);
+    port_pin_set_output_level(LED_DRIVER_PIN, LED_DRIVER_ACTIVE);
+
     /* Set buttons as inputs */
     //pin_conf.direction  = PORT_PIN_DIR_INPUT;
     //pin_conf.input_pull = PORT_PIN_PULL_UP;
