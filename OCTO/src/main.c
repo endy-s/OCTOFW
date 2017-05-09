@@ -71,33 +71,35 @@ int main (void)
     
     while (true) {
         
-        if (tick_elapsed(timer) % 2 == 0)
+        if (tick_elapsed(timer) % 1000 == 0)
         {
             
-            //if (led_rising)
-            //{
-                //if (led_bright >= 950)
-                //{
-                    //led_rising = false;
-                //}
-                //else
-                //{
-                    //led_bright += 5;
-                //}
-            //}
-            //else
-            //{
-                //if (led_bright <= 50)
-                //{
-                    //led_rising = true;
-                //}
-                //else
-                //{
-                    //led_bright -= 5;
-                //}
-            //}
-            //
-            //set_led_bright_percent(led_bright);
+            if (led_rising)
+            {
+                if (led_bright >= 950)
+                {
+                    led_rising = false;
+                }
+                else
+                {
+                    led_bright += 5;
+                }
+            }
+            else
+            {
+                if (led_bright <= 50)
+                {
+                    led_rising = true;
+                }
+                else
+                {
+                    led_bright -= 5;
+                }
+            }
+            
+            set_led_bright_percent(led_bright);
+            
+            port_pin_toggle_output_level(LED_RED_PIN);            
         }
         
         bt_usart_receive_job();
@@ -131,7 +133,21 @@ void configure_OCTO_peripheral()
     // Configure the RTC - Used as Tick (1ms)
     configure_rtc_count();
 
-    //configure_adc();
+    // Configure the Internal ADC
+    configure_adc_VMPPT();
+    
+    uint32_t adc_reading = 0, reading = 0;
+    
+    get_value_VMPPT(&adc_reading, &reading);
+    printf("VMPPT ADC Read: %d \t|\t converted: %dV\n", adc_reading, reading);
+    
+    turn_off_adc();
+    
+    
+    configure_adc_TEMP();
+      
+    get_value_TEMP(&adc_reading, &reading);
+    printf("TEMP ADC Read: %d \t|\t converted: %d.%dC\n", adc_reading, reading/10, reading%10);
 
     // Configure I²C device and enable
     configure_gas_gauge();

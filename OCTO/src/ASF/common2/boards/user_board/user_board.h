@@ -61,42 +61,41 @@ void system_board_init(void);
 #define LED_RED_INACTIVE            !LED_RED_ACTIVE
 #define LED_RED_GPIO                LED_RED_PIN
 #define LED_RED                     LED_RED_PIN
-
-//#define LED_RED_PWM4CTRL_MODULE     TCC0
-//#define LED_RED_PWM4CTRL_CHANNEL    0
-//#define LED_RED_PWM4CTRL_OUTPUT     0
-//#define LED_RED_PWM4CTRL_PIN        PIN_PA14E_TCC0_WO0
-//#define LED_RED_PWM4CTRL_MUX        MUX_PA14E_TCC0_WO0
-//#define LED_RED_PWM4CTRL_PINMUX     PINMUX_PB30E_TCC0_WO0
 /** @} */
 
 
 /** \name LED GREEN definitions
  *  @{ */
-#define LED_GREEN_NAME            "LED1 (bicolor)"
-#define LED_GREEN_PIN             PIN_PA15
-#define LED_GREEN_ACTIVE          true
-#define LED_GREEN_INACTIVE        !LED_GREEN_ACTIVE
-#define LED_GREEN_GPIO            LED_GREEN_PIN
-#define LED_GREEN                 LED_GREEN_PIN
-
-//#define LED_GREEN_PWM4CTRL_MODULE     TCC0
-//#define LED_GREEN_PWM4CTRL_CHANNEL    0
-//#define LED_GREEN_PWM4CTRL_OUTPUT     0
-//#define LED_GREEN_PWM4CTRL_PIN        PIN_PA14E_TCC0_WO0
-//#define LED_GREEN_PWM4CTRL_MUX        MUX_PA14E_TCC0_WO0
-//#define LED_GREEN_PWM4CTRL_PINMUX     PINMUX_PB30E_TCC0_WO0
+#define LED_GREEN_NAME              "LED1 (bicolor)"
+#define LED_GREEN_PIN               PIN_PA15
+#define LED_GREEN_ACTIVE            true
+#define LED_GREEN_INACTIVE          !LED_GREEN_ACTIVE
+#define LED_GREEN_GPIO              LED_GREEN_PIN
+#define LED_GREEN                   LED_GREEN_PIN
 /** @} */
 
-#define LED_DRIVER_NAME                "LED Driver"
-#define LED_DRIVER_PIN                 PIN_PA01
-#define LED_DRIVER_ACTIVE              true
-#define LED_DRIVER_INACTIVE            !LED_DRIVER_ACTIVE
-#define LED_DRIVER_GPIO                LED_DRIVER_PIN
-#define LED_DRIVER                     LED_DRIVER_PIN
+/** \name LED Driver definitions
+ *  @{ */
+#define LED_DRIVER_NAME             "LED Driver"
+#define LED_DRIVER_PIN              PIN_PA01
+#define LED_DRIVER_ACTIVE           true
+#define LED_DRIVER_INACTIVE         !LED_DRIVER_ACTIVE
+#define LED_DRIVER_GPIO             LED_DRIVER_PIN
+#define LED_DRIVER                  LED_DRIVER_PIN
+/** @} */
 
 /** Number of on-board LEDs */
 #define LED_COUNT                 3
+
+/** \name BT Module definitions
+ *  @{ */
+#define BT_ENABLE_NAME              "BT Module"
+#define BT_ENABLE_PIN               PIN_PA03
+#define BT_ENABLE_ACTIVE            true
+#define BT_ENABLE_INACTIVE          !BT_ENABLE_ACTIVE
+#define BT_ENABLE_GPIO              BT_ENABLE_PIN
+#define BT_ENABLE                   BT_ENABLE_PIN
+/** @} */
 
 /** \name Extension header #1 ADC definitions
  *  @{
