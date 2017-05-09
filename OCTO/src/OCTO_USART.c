@@ -8,16 +8,13 @@
 #include "OCTO_USART.h"
 
 
-#define DBG_MODE
-
-
-
 //====================================================
 // USART - Local Variables
 //====================================================
 
 //! [module_inst]
-struct usart_module usart_instance;
+struct usart_module bt_usart_instance;
+struct usart_module dbg_usart_instance;
 //! [module_inst]
 
 //! [USART rx_buffer_var]
@@ -34,13 +31,11 @@ volatile uint8_t rx_buffer[MAX_RX_BUFFER_LENGTH];
 //=============================================================================
 void usart_read_callback(struct usart_module *const usart_module)
 {
-    usart_write_buffer_job(&usart_instance, (uint8_t *)rx_buffer, MAX_RX_BUFFER_LENGTH);
+    usart_write_buffer_job(&bt_usart_instance, (uint8_t *)rx_buffer, MAX_RX_BUFFER_LENGTH);
+    
     port_pin_toggle_output_level(LED_GREEN_PIN);
     
-    uint8_t answer_string[] = "Received: ";
-    usart_write_buffer_wait(&usart_instance, answer_string, sizeof(rx_buffer));
-    
-    usart_write_buffer_wait(&usart_instance, (uint8_t *)rx_buffer, sizeof(rx_buffer));
+    usart_write_buffer_wait(&bt_usart_instance, (uint8_t *)rx_buffer, sizeof(rx_buffer));
 }
 
 //=============================================================================
@@ -50,7 +45,7 @@ void usart_read_callback(struct usart_module *const usart_module)
 //=============================================================================
 void usart_write_callback(struct usart_module *const usart_module)
 {
-    port_pin_toggle_output_level(LED_RED_PIN);
+    port_pin_toggle_output_level(LED_GREEN_PIN);
 }
 
 //=============================================================================
@@ -58,57 +53,39 @@ void usart_write_callback(struct usart_module *const usart_module)
 //=============================================================================
 void configure_usart(void)
 {
-    // General
-
-    //! [setup_config]
+// General
     struct usart_config config_usart;
-    //! [setup_config]
-    //! [setup_config_defaults]
     usart_get_config_defaults(&config_usart);
-    //! [setup_config_defaults]
     
-    // Debug USART
-    #ifdef DBG_MODE
-    //! [setup_change_config]
-    config_usart.baudrate    = 115200;
-    config_usart.mux_setting = DBG_UART_SERCOM_MUX_SETTING;
-    config_usart.pinmux_pad0 = DBG_UART_SERCOM_PINMUX_PAD0;
-    config_usart.pinmux_pad1 = DBG_UART_SERCOM_PINMUX_PAD1;
-    config_usart.pinmux_pad2 = DBG_UART_SERCOM_PINMUX_PAD2;
-    config_usart.pinmux_pad3 = DBG_UART_SERCOM_PINMUX_PAD3;
-    //! [setup_change_config]
+// Debug USART
+#ifdef DBG_MODE
+    config_usart.baudrate    = 9600;
+    config_usart.mux_setting = EDBG_CDC_SERCOM_MUX_SETTING;
+    config_usart.pinmux_pad0 = EDBG_CDC_SERCOM_PINMUX_PAD0;
+    config_usart.pinmux_pad1 = EDBG_CDC_SERCOM_PINMUX_PAD1;
+    config_usart.pinmux_pad2 = EDBG_CDC_SERCOM_PINMUX_PAD2;
+    config_usart.pinmux_pad3 = EDBG_CDC_SERCOM_PINMUX_PAD3;
 
-    //! [setup_set_config]
-    while (usart_init(&usart_instance, DBG_UART_MODULE, &config_usart) != STATUS_OK)
-    {
-    }
-    //! [setup_set_config]
+    while (usart_init(&dbg_usart_instance, EDBG_CDC_MODULE, &config_usart) != STATUS_OK) {}
+    usart_enable(&dbg_usart_instance);
+    
+    stdio_serial_init(&dbg_usart_instance, EDBG_CDC_MODULE, &config_usart);
 
-    //! [setup_enable]
-    usart_enable(&usart_instance);
-    //! [setup_enable]
-    #endif
+    port_pin_set_output_level(LED_GREEN_PIN, LED_GREEN_ACTIVE);
+#endif
 
 
-    // BT USART
-    //! [setup_change_config]
-    config_usart.baudrate    = 115200;
+//BT USART
+    config_usart.baudrate    = 9600;
     config_usart.mux_setting = BT_UART_SERCOM_MUX_SETTING;
     config_usart.pinmux_pad0 = BT_UART_SERCOM_PINMUX_PAD0;
     config_usart.pinmux_pad1 = BT_UART_SERCOM_PINMUX_PAD1;
     config_usart.pinmux_pad2 = BT_UART_SERCOM_PINMUX_PAD2;
     config_usart.pinmux_pad3 = BT_UART_SERCOM_PINMUX_PAD3;
-    //! [setup_change_config]
 
-    //! [setup_set_config]
-    while (usart_init(&usart_instance, BT_UART_MODULE, &config_usart) != STATUS_OK)
-    {
-    }
-    //! [setup_set_config]
-
-    //! [setup_enable]
-    usart_enable(&usart_instance);
-    //! [setup_enable]
+    while (usart_init(&bt_usart_instance, BT_UART_MODULE, &config_usart) != STATUS_OK) {}
+   
+    usart_enable(&bt_usart_instance);
     
 }
 
@@ -118,14 +95,23 @@ void configure_usart(void)
 void configure_usart_callbacks(void)
 {
     //! [setup_register_callbacks]
-    usart_register_callback(&usart_instance, usart_write_callback, USART_CALLBACK_BUFFER_TRANSMITTED);
-    usart_register_callback(&usart_instance, usart_read_callback,  USART_CALLBACK_BUFFER_RECEIVED);
+    usart_register_callback(&bt_usart_instance, usart_write_callback, USART_CALLBACK_BUFFER_TRANSMITTED);
+    usart_register_callback(&bt_usart_instance, usart_read_callback,  USART_CALLBACK_BUFFER_RECEIVED);
     //! [setup_register_callbacks]
 
     //! [setup_enable_callbacks]
-    usart_enable_callback(&usart_instance, USART_CALLBACK_BUFFER_TRANSMITTED);
-    usart_enable_callback(&usart_instance, USART_CALLBACK_BUFFER_RECEIVED);
+    usart_enable_callback(&bt_usart_instance, USART_CALLBACK_BUFFER_TRANSMITTED);
+    usart_enable_callback(&bt_usart_instance, USART_CALLBACK_BUFFER_RECEIVED);
     //! [setup_enable_callbacks]
 }
 
 
+void bt_usart_write_job(uint8_t *string)
+{
+    usart_write_buffer_job(&bt_usart_instance, string, sizeof(string));
+}
+
+void bt_usart_receive_job(void)
+{
+    usart_read_buffer_job(&bt_usart_instance, (uint8_t *)rx_buffer, MAX_RX_BUFFER_LENGTH);
+}
