@@ -31,11 +31,10 @@ volatile uint8_t rx_buffer[MAX_RX_BUFFER_LENGTH];
 //=============================================================================
 void usart_read_callback(struct usart_module *const usart_module)
 {
+    port_pin_toggle_output_level(LED_GREEN_PIN);
     usart_write_buffer_job(&bt_usart_instance, (uint8_t *)rx_buffer, MAX_RX_BUFFER_LENGTH);
     
-    port_pin_toggle_output_level(LED_GREEN_PIN);
-    
-    usart_write_buffer_wait(&bt_usart_instance, (uint8_t *)rx_buffer, sizeof(rx_buffer));
+    // Treat the BT received messages over here!!    
 }
 
 //=============================================================================
@@ -45,7 +44,7 @@ void usart_read_callback(struct usart_module *const usart_module)
 //=============================================================================
 void usart_write_callback(struct usart_module *const usart_module)
 {
-    port_pin_toggle_output_level(LED_GREEN_PIN);
+    //port_pin_toggle_output_level(LED_GREEN_PIN);
 }
 
 //=============================================================================
@@ -70,8 +69,6 @@ void configure_usart(void)
     usart_enable(&dbg_usart_instance);
     
     stdio_serial_init(&dbg_usart_instance, EDBG_CDC_MODULE, &config_usart);
-
-    port_pin_set_output_level(LED_GREEN_PIN, LED_GREEN_ACTIVE);
 #endif
 
 
