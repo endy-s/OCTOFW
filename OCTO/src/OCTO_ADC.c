@@ -8,8 +8,8 @@
 #include "OCTO_ADC.h"
 
 
-#define D_ADC_VREF                                  (3300)
-#define D_ADC_RESOLUTION                            (1 << 12)
+#define D_ADC_VREF          (3300)
+#define D_ADC_RESOLUTION    (1 << 12)
 
 #define VMPPT_PULL_UP       100
 #define VMPPT_PULL_DOWN     220
@@ -72,7 +72,7 @@ void get_value_VMPPT (uint32_t *value, uint32_t *converted)
     
     do {
         /* Wait for conversion to be done and read out result */
-    } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = ((VMPPT_PULL_UP + VMPPT_PULL_DOWN) * D_ADC_VREF * adc_reading / VMPPT_PULL_DOWN) / 4095;
+    } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = ((VMPPT_PULL_UP + VMPPT_PULL_DOWN) * D_ADC_VREF * adc_reading / VMPPT_PULL_DOWN) / D_ADC_RESOLUTION;
     
     *value = adc_reading;
     *converted = reading;
@@ -89,7 +89,7 @@ void get_value_TEMP (uint32_t *value, uint32_t *converted)
     
     do {
         /* Wait for conversion to be done and read out result */
-    } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = D_ADC_VREF * adc_reading / 4095;        uint32_t temp = (1858300 - 1000 * (uint32_t)reading) / 1167; // + 2731; // Remove the earlier commentary for convertion to Kelvin    
+    } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = D_ADC_VREF * adc_reading / D_ADC_RESOLUTION;        uint32_t temp = (1858300 - 1000 * reading) / 1167; // + 2731; // Remove the earlier commentary for convertion to Kelvin    
     *value = adc_reading;
     *converted = temp;
     

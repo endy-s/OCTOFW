@@ -12,7 +12,8 @@
 #include <asf.h>
 
 void configure_gas_gauge(void);
-char gas_gauge_read(void);
+
+bool gas_gauge_read(uint32_t *value, uint32_t *percent);
 
 
 

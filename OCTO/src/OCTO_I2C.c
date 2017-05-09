@@ -28,6 +28,7 @@ static char twi_inited = false;
 const uint8_t test_pattern[] = {0xF0, 0x01};
 static uint8_t read_buffer[DATA_LENGTH];
 
+
 void configure_gas_gauge()
 {
     struct i2c_master_config config_gas_gauge;
@@ -43,10 +44,14 @@ void configure_gas_gauge()
     i2c_master_enable(&gas_gauge_instance);
 }
 
-char gas_gauge_read()
+bool gas_gauge_read(uint32_t *value, uint32_t *percent)
 {
+    bool ok = false;
+    
     /* Timeout counter. */
     uint16_t timeout = 0;
+    
+    
     /* Init i2c packet. */
     struct i2c_master_packet packet = {
         .address = GAS_GAUGE_ADDRESS,
@@ -58,17 +63,31 @@ char gas_gauge_read()
     };
     
     /* Read from slave until success. */
-    packet.data = read_buffer;
-    while (i2c_master_read_packet_wait(&gas_gauge_instance, &packet) != STATUS_OK) {
+    //packet.data = read_buffer;
+    if (i2c_master_read_packet_wait(&gas_gauge_instance, &packet) == STATUS_OK) {
         /* Increment timeout counter and check if timed out. */
-        if (timeout++ == TIMEOUT) {
-            break;
-        }
+        //if (timeout++ == TIMEOUT) {
+            //break;
+        //}
+        
+        //printf("TWI SETUP READ - SUCCESS!\n");
+
+        uint16_t twi_reading = read_buffer[0] << 8 | read_buffer[1];
+        uint16_t twi_percent = (twi_reading * 1000) / FULL_SCALE_GAUGE;
+
+        *value     = twi_reading;
+        *percent   = twi_percent;
+
+        ok = true;
         
         //uint8_t string[] = "\nI2C read: ";
         //usart_write_buffer_wait(&gas_gauge_instance, string, sizeof(string));
         //usart_write_buffer_wait(&gas_gauge_instance, read_buffer, sizeof(string));
     }
+    else
+    {
+        //printf("TWI SETUP READ - FAILED!\n");
+    }
     
-    return true;
+    return ok;
 }

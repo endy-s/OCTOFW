@@ -74,30 +74,35 @@ int main (void)
         if (tick_elapsed(timer) % 1000 == 0)
         {
             
-            if (led_rising)
-            {
-                if (led_bright >= 950)
-                {
-                    led_rising = false;
-                }
-                else
-                {
-                    led_bright += 5;
-                }
-            }
-            else
-            {
-                if (led_bright <= 50)
-                {
-                    led_rising = true;
-                }
-                else
-                {
-                    led_bright -= 5;
-                }
-            }
+            //if (led_rising)
+            //{
+                //if (led_bright >= 950)
+                //{
+                    //led_rising = false;
+                //}
+                //else
+                //{
+                    //led_bright += 5;
+                //}
+            //}
+            //else
+            //{
+                //if (led_bright <= 50)
+                //{
+                    //led_rising = true;
+                //}
+                //else
+                //{
+                    //led_bright -= 5;
+                //}
+            //}
             
-            set_led_bright_percent(led_bright);
+            uint32_t adc_reading = 0, reading = 0;
+            
+            if (gas_gauge_read(&adc_reading, &reading))
+            {
+                printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
+            }
             
             port_pin_toggle_output_level(LED_RED_PIN);            
         }
@@ -133,13 +138,26 @@ void configure_OCTO_peripheral()
     // Configure the RTC - Used as Tick (1ms)
     configure_rtc_count();
 
-    // Configure the Internal ADC
+// Variables for testing!
+uint32_t adc_reading = 0, reading = 0;
+
+    // Configure I²C device and enable
+    configure_gas_gauge();
+    if (gas_gauge_read(&adc_reading, &reading))
+    {
+        printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
+    }
+    
+
+    // Initial configuration and read of the Internal ADC - Copy and paste this code into the function of reading
+    
+
     configure_adc_VMPPT();
     
-    uint32_t adc_reading = 0, reading = 0;
-    
     get_value_VMPPT(&adc_reading, &reading);
+#ifdef DBG_MODE
     printf("VMPPT ADC Read: %d \t|\t converted: %dV\n", adc_reading, reading);
+#endif
     
     turn_off_adc();
     
@@ -147,8 +165,7 @@ void configure_OCTO_peripheral()
     configure_adc_TEMP();
       
     get_value_TEMP(&adc_reading, &reading);
+#ifdef DBG_MODE
     printf("TEMP ADC Read: %d \t|\t converted: %d.%dC\n", adc_reading, reading/10, reading%10);
-
-    // Configure I²C device and enable
-    configure_gas_gauge();
+#endif
 }
