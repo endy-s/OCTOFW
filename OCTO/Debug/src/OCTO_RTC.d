@@ -118,8 +118,10 @@ src/OCTO_RTC.d src/OCTO_RTC.o: ../src/OCTO_RTC.c ../src/OCTO_RTC.h \
  ../src/config/conf_board.h ../src/ASF/sam0/drivers/dac/dac.h \
  ../src/ASF/sam0/drivers/dac/dac_sam_d_c/dac_feature.h \
  ../src/ASF/sam0/drivers/dac/dac_callback.h \
- ../src/ASF/sam0/drivers/dac/dac.h ../src/ASF/common/boards/board.h \
- ../src/ASF/sam0/drivers/port/port.h \
+ ../src/ASF/sam0/drivers/dac/dac.h \
+ ../src/ASF/common2/services/delay/delay.h \
+ ../src/ASF/common2/services/delay/sam0/systick_counter.h \
+ ../src/ASF/common/boards/board.h ../src/ASF/sam0/drivers/port/port.h \
  ../src/ASF/sam0/drivers/rtc/rtc_count.h ../src/config/conf_clocks.h \
  ../src/ASF/sam0/drivers/rtc/rtc_count_interrupt.h \
  ../src/ASF/sam0/drivers/rtc/rtc_count.h \
@@ -135,7 +137,10 @@ src/OCTO_RTC.d src/OCTO_RTC.o: ../src/OCTO_RTC.c ../src/OCTO_RTC.h \
  ../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h \
  ../src/ASF/sam0/drivers/sercom/usart/usart.h \
  ../src/ASF/sam0/drivers/sercom/usart/usart_interrupt.h \
- ../src/ASF/sam0/drivers/sercom/usart/usart.h
+ ../src/ASF/sam0/drivers/sercom/usart/usart.h \
+ ../src/ASF/sam0/utils/stdio/stdio_serial/stdio_serial.h \
+ ../src/ASF/common/services/serial/serial.h \
+ ../src/ASF/common/services/serial/sam0_usart/usart_serial.h
 
 ../src/OCTO_RTC.h:
 
@@ -385,6 +390,10 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/sam0/drivers/dac/dac.h:
 
+../src/ASF/common2/services/delay/delay.h:
+
+../src/ASF/common2/services/delay/sam0/systick_counter.h:
+
 ../src/ASF/common/boards/board.h:
 
 ../src/ASF/sam0/drivers/port/port.h:
@@ -422,3 +431,9 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/ASF/sam0/drivers/sercom/usart/usart_interrupt.h:
 
 ../src/ASF/sam0/drivers/sercom/usart/usart.h:
+
+../src/ASF/sam0/utils/stdio/stdio_serial/stdio_serial.h:
+
+../src/ASF/common/services/serial/serial.h:
+
+../src/ASF/common/services/serial/sam0_usart/usart_serial.h:

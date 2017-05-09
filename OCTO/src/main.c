@@ -53,23 +53,28 @@ void configure_OCTO_peripheral(void);
 int main (void)
 {
 	system_init();
+    
+    delay_init();
+    
+    system_interrupt_enable_global();
 
 	/* Insert application code here, after the board has been initialized. */
     
     // Configure all the peripherals for the OCTO Board
     configure_OCTO_peripheral();
     // Used with the DAC for the led brightness
-    uint8_t led_bright = 0;
+    uint32_t led_bright = 0;
+    uint16_t led_test = 0;
     
     // RTC timing
     uint32_t timer = get_tick();
-
+    
     while (true) {
         
-        if (tick_elapsed(timer) % 2 == 0)
+        if (tick_elapsed(timer) % 1000 == 0)
         {
             port_pin_toggle_output_level(LED_RED_PIN);
-            set_led_bright_percent(led_bright);
+            set_led_bright_percent(0);
             
             if (++led_bright >= 99)
             {
@@ -77,10 +82,9 @@ int main (void)
             }
         }
         
-        
         //! [main_loop]
         //! [main_read]
-       // usart_read_buffer_job(&usart_instance, (uint8_t *)rx_buffer, MAX_RX_BUFFER_LENGTH);
+        bt_usart_receive_job();
         //! [main_read]
     }
 }
@@ -88,25 +92,24 @@ int main (void)
 
 void configure_OCTO_peripheral()
 {
-    // Led Green On
-    port_pin_set_output_level(LED_GREEN_PIN, LED_GREEN_ACTIVE);
+    // Led Red On
+    port_pin_set_output_level(LED_RED_PIN, LED_RED_ACTIVE);
     
-    // 
+    // Enable global interrupts
+    system_interrupt_enable_global();
+    
+    // USART Configuration
     configure_usart();
     configure_usart_callbacks();
 
-    // Enable global interrupts
-    system_interrupt_enable_global();
-
-// Debug USART - Header transmitting
+    // Debug USART - Header transmitting
 #ifdef DBG_MODE
-    uint8_t string[] = "\nOCTO Board - ";
-    dbg_usart_write(string);
-    uint8_t string_date[] = __DATE__;
-    dbg_usart_write(string_date);
-    uint8_t string_time[] = __TIME__;
-    dbg_usart_write(string_time);
+    printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 #endif
+
+    bt_usart_write_job("1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|");
+    bt_usart_write_job("1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|");
+    bt_usart_write_job("1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|");
     
     // Configure I²C device and enable
     configure_gas_gauge();
@@ -114,7 +117,7 @@ void configure_OCTO_peripheral()
     // Configure the DAC - LED stripe
     configure_dac();
     configure_dac_channel();
-    
+        
     // Configure the RTC - Used as Tick (1ms)
     configure_rtc_count();
 }
