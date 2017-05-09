@@ -18,7 +18,7 @@ struct adc_module adc_instance;
 //! \return TRUE if that ADC was successfully configured.
 //=============================================================================
 
-char ADC_init (void)
+char configure_adc (void)
 {
     struct adc_config conf_adc;
 

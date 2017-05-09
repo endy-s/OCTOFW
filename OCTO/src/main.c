@@ -63,29 +63,44 @@ int main (void)
     // Configure all the peripherals for the OCTO Board
     configure_OCTO_peripheral();
     // Used with the DAC for the led brightness
-    uint32_t led_bright = 0;
-    uint16_t led_test = 0;
+    uint16_t led_bright = 0;
+    bool     led_rising = true;
     
     // RTC timing
     uint32_t timer = get_tick();
     
     while (true) {
         
-        if (tick_elapsed(timer) % 1000 == 0)
+        if (tick_elapsed(timer) % 2 == 0)
         {
-            port_pin_toggle_output_level(LED_RED_PIN);
-            set_led_bright_percent(0);
             
-            if (++led_bright >= 99)
-            {
-                led_bright = 0;
-            }
+            //if (led_rising)
+            //{
+                //if (led_bright >= 950)
+                //{
+                    //led_rising = false;
+                //}
+                //else
+                //{
+                    //led_bright += 5;
+                //}
+            //}
+            //else
+            //{
+                //if (led_bright <= 50)
+                //{
+                    //led_rising = true;
+                //}
+                //else
+                //{
+                    //led_bright -= 5;
+                //}
+            //}
+            //
+            //set_led_bright_percent(led_bright);
         }
         
-        //! [main_loop]
-        //! [main_read]
         bt_usart_receive_job();
-        //! [main_read]
     }
 }
 
@@ -107,17 +122,17 @@ void configure_OCTO_peripheral()
     printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 #endif
 
-    bt_usart_write_job("1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|");
-    bt_usart_write_job("1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|");
-    bt_usart_write_job("1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|1234567890|");
-    
-    // Configure I²C device and enable
-    configure_gas_gauge();
-    
     // Configure the DAC - LED stripe
     configure_dac();
-    configure_dac_channel();
-        
+
+    // Initial state of the LED stripe
+    set_led_bright_percent(0);
+       
     // Configure the RTC - Used as Tick (1ms)
     configure_rtc_count();
+
+    //configure_adc();
+
+    // Configure I²C device and enable
+    configure_gas_gauge();
 }
