@@ -57,6 +57,24 @@ bool configure_adc_TEMP (void)
     return true;
 }
 
+bool configure_adc_BCAP (void)
+{
+    struct adc_config conf_adc;
+
+    adc_get_config_defaults(&conf_adc);
+
+    conf_adc.reference = ADC_REFERENCE_AREFA;
+    //conf_adc.positive_input = BCAP_ADC_2_PIN;
+    
+    system_voltage_reference_enable(ADC_REFERENCE_AREFA);
+
+    adc_init(&adc_instance, ADC_MODULE, &conf_adc);
+
+    adc_enable(&adc_instance);
+
+    return true;
+}
+
 
 void turn_off_adc(void)
 {
@@ -92,6 +110,21 @@ void get_value_TEMP (uint32_t *value, uint32_t *converted)
     } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = D_ADC_VREF * adc_reading / D_ADC_RESOLUTION;        uint32_t temp = (1858300 - 1000 * reading) / 1167; // + 2731; // Remove the earlier commentary for convertion to Kelvin    
     *value = adc_reading;
     *converted = temp;
+    
+    return;
+}
+
+void get_value_BCAP (uint32_t *value, uint32_t *converted)
+{
+    adc_start_conversion(&adc_instance);
+    
+    uint32_t adc_reading, reading;
+    
+    do {
+        /* Wait for conversion to be done and read out result */
+    } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = D_ADC_VREF * adc_reading / D_ADC_RESOLUTION;    
+    *value = adc_reading;
+    *converted = reading;
     
     return;
 }

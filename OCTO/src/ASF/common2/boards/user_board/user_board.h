@@ -97,6 +97,16 @@ void system_board_init(void);
 #define BT_ENABLE                   BT_ENABLE_PIN
 /** @} */
 
+/** \name BCAP definitions
+ *  @{ */
+#define BCAP_ENABLE_NAME            "BCAP Enable"
+#define BCAP_ENABLE_PIN             PIN_PA19
+#define BCAP_ENABLE_ACTIVE          true
+#define BCAP_ENABLE_INACTIVE        !BCAP_ENABLE_ACTIVE
+#define BCAP_ENABLE_GPIO            BCAP_ENABLE_PIN
+#define BCAP_ENABLE                 BCAP_ENABLE_PIN
+/** @} */
+
 /** \name Extension header #1 ADC definitions
  *  @{
  */
@@ -109,6 +119,10 @@ void system_board_init(void);
 #define TEMP_ADC_1_PIN             PIN_PA07B_ADC_AIN7
 #define TEMP_ADC_1_MUX             MUX_PA07B_ADC_AIN7
 #define TEMP_ADC_1_PINMUX          PINMUX_PA07B_ADC_AIN7
+//#define BCAP_ADC_2_CHANNEL         6
+//#define BCAP_ADC_2_PIN             PIN_PA06B_ADC_AIN6
+//#define BCAP_ADC_2_MUX             MUX_PA06B_ADC_AIN6
+//#define BCAP_ADC_2_PINMUX          PINMUX_PA06B_ADC_AIN6
 /** @} */
 
 /** \name Extension header #1 I2C definitions
@@ -147,6 +161,41 @@ void system_board_init(void);
 //#define DBG_UART_SERCOM_DMAC_ID_RX   SERCOM3_DMAC_ID_RX
 /** @} */
 
+/** \name Extension header #3 IRQ/External interrupt definitions
+ *  @{
+ */
+//#define BCAP_RX_MODULE           EIC
+//#define BCAP_RX_INPUT            2
+//#define BCAP_RX_PIN              PIN_PA18A_EIC_EXTINT2
+//#define BCAP_RX_MUX              MUX_PA18A_EIC_EXTINT2
+//#define BCAP_RX_PINMUX           PINMUX_PA18A_EIC_EXTINT2
+
+#define SW0_PIN                   PIN_PA18
+#define SW0_ACTIVE                true
+#define SW0_INACTIVE              !SW0_ACTIVE
+#define SW0_EIC_PIN               PIN_PA18A_EIC_EXTINT2
+#define SW0_EIC_MUX               MUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_PINMUX            PINMUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_LINE              2
+/** @} */
+
+/**
+ * \name Button #0 definitions
+ *
+ * Wrapper macros for SW0, to ensure common naming across all Xplained Pro
+ * boards.
+ *
+ *  @{ */
+#define BUTTON_0_NAME             "SW0"
+#define BUTTON_0_PIN              SW0_PIN
+#define BUTTON_0_ACTIVE           SW0_ACTIVE
+#define BUTTON_0_INACTIVE         SW0_INACTIVE
+#define BUTTON_0_EIC_PIN          SW0_EIC_PIN
+#define BUTTON_0_EIC_MUX          SW0_EIC_MUX
+#define BUTTON_0_EIC_PINMUX       SW0_EIC_PINMUX
+#define BUTTON_0_EIC_LINE         SW0_EIC_LINE
+/** @} */
+
 
 
 
@@ -180,15 +229,6 @@ void system_board_init(void);
 #define EXT3_PWM4CTRL_1_PINMUX    PINMUX_PA13E_TCC2_WO1
 /** @} */
 
-/** \name Extension header #3 IRQ/External interrupt definitions
- *  @{
- */
-#define EXT3_IRQ_MODULE           EIC
-#define EXT3_IRQ_INPUT            8
-#define EXT3_IRQ_PIN              PIN_PA28A_EIC_EXTINT8
-#define EXT3_IRQ_MUX              MUX_PA28A_EIC_EXTINT8
-#define EXT3_IRQ_PINMUX           PINMUX_PA28A_EIC_EXTINT8
-/** @} */
 
 /** \name Extension header #3 I2C definitions
  *  @{

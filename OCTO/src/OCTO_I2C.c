@@ -26,7 +26,7 @@ struct i2c_master_module gas_gauge_instance;
 static char twi_inited = false;
 
 const uint8_t test_pattern[] = {0xF0, 0x01};
-static uint8_t read_buffer[DATA_LENGTH];
+static uint8_t read_buffer[DATA_LENGTH] = {0x02, 0x02};
 
 
 void configure_gas_gauge()

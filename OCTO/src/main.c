@@ -41,10 +41,49 @@
 // Local Prototypes
 //====================================================
 void configure_OCTO_peripheral(void);
+void configure_extint_channel(void);
+void extint_detection_callback(void);
 
 //====================================================
-// Local Defines
+// Local Variables
 //====================================================
+uint32_t bcap_counter = 0;
+
+struct port_config pin_conf;
+
+
+
+void configure_extint_channel(void)
+{
+    //struct extint_chan_conf config_extint_chan;
+    //extint_chan_get_config_defaults(&config_extint_chan);
+    //config_extint_chan.gpio_pin = BCAP_RX_PIN;
+    //config_extint_chan.gpio_pin_mux = BCAP_RX_MUX;
+    //config_extint_chan.gpio_pin_pull = EXTINT_PULL_NONE;
+    //config_extint_chan.detection_criteria = EXTINT_DETECT_HIGH;
+    //extint_chan_set_config(BCAP_RX_INPUT, &config_extint_chan);
+       //
+    //extint_register_callback(extint_detection_callback, BCAP_RX_INPUT, EXTINT_CALLBACK_TYPE_DETECT);
+    //extint_chan_enable_callback(BCAP_RX_INPUT, EXTINT_CALLBACK_TYPE_DETECT);
+}void extint_detection_callback(void)
+{
+    //bool pin_state = port_pin_get_input_level(BCAP_RX_PIN);
+    //if (pin_state)
+    //{
+        
+        
+    //}
+    //else
+    //{
+        port_pin_toggle_output_level(LED_GREEN_PIN);
+        
+        printf("\nCounter Value: %d", tick_elapsed(bcap_counter));
+        
+        bcap_counter = get_tick();
+    //}
+    
+    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
+}
 
 
 //=============================================================================
@@ -53,15 +92,9 @@ void configure_OCTO_peripheral(void);
 int main (void)
 {
 	system_init();
-    
-    delay_init();
-    
-    system_interrupt_enable_global();
-
-	/* Insert application code here, after the board has been initialized. */
-    
+        
     // Configure all the peripherals for the OCTO Board
-    configure_OCTO_peripheral();
+    configure_OCTO_peripheral();        delay_init();
     // Used with the DAC for the led brightness
     uint16_t led_bright = 0;
     bool     led_rising = true;
@@ -69,9 +102,9 @@ int main (void)
     // RTC timing
     uint32_t timer = get_tick();
     
-    while (true) {
-        
-        if (tick_elapsed(timer) % 1000 == 0)
+    while (true) 
+    {
+        if (tick_elapsed(timer) % 2000 == 0)
         {
             
             //if (led_rising)
@@ -97,12 +130,68 @@ int main (void)
                 //}
             //}
             
-            uint32_t adc_reading = 0, reading = 0;
+             bcap_counter = 0;
             
-            if (gas_gauge_read(&adc_reading, &reading))
+            port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);  // sendPin Register low
+             
+            pin_conf.direction  = PORT_PIN_DIR_INPUT;                          // receivePin to input (pullups are off)
+            pin_conf.input_pull = PORT_PIN_PULL_NONE;
+            port_pin_set_config(BUTTON_0_PIN, &pin_conf);
+             
+            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+            port_pin_set_config(BUTTON_0_PIN, &pin_conf);                       // receivePin to OUTPUT      
+            port_pin_set_output_level(BUTTON_0_PIN, BCAP_ENABLE_INACTIVE);     // pin is now LOW AND OUTPUT
+ 
+            delay_us(10);                                                      
+ 
+            /* Set buttons as inputs */
+            pin_conf.direction  = PORT_PIN_DIR_INPUT;                          // receivePin to input (pullups are off)
+            pin_conf.input_pull = PORT_PIN_PULL_NONE;
+            port_pin_set_config(BUTTON_0_PIN, &pin_conf);
+            
+            port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_ACTIVE); // sendPin High
+             
+            while ((ioport_get_pin_level(BUTTON_0_PIN) != BUTTON_0_ACTIVE) && (bcap_counter < 0xFFFFFFFF))
             {
-                printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
+                bcap_counter++;
+            } 
+            
+            //if (bcap_counter > 0xFFFFFFFF)
+            //{
+                //
+            //}                
+             
+            // set receive pin HIGH briefly to charge up fully - because the while loop above will exit when pin is ~ 2.5V
+            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+            port_pin_set_config(BUTTON_0_PIN, &pin_conf);                       
+            port_pin_set_output_level(BUTTON_0_PIN, BCAP_ENABLE_ACTIVE);     // receivePin to OUTPUT - pin is now HIGH AND OUTPUT
+             
+            /* Set buttons as inputs */
+            pin_conf.direction  = PORT_PIN_DIR_INPUT;                          
+            pin_conf.input_pull = PORT_PIN_PULL_NONE;
+            port_pin_set_config(BUTTON_0_PIN, &pin_conf);	                    // receivePin to INPUT (pullup is off)
+                       
+            port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);  // sendPin LOW
+             
+            while ((ioport_get_pin_level(BUTTON_0_PIN) == BUTTON_0_ACTIVE) && (bcap_counter < 0xFFFFFFFF))
+            {
+                bcap_counter++;
             }
+             
+            if (bcap_counter < 0xFFFFFFFF)
+            {
+                port_pin_toggle_output_level(LED_GREEN_PIN);
+                printf("\nbcap counter = %d | %d\n", bcap_counter, timer);
+            }
+            
+             
+            
+            //uint32_t adc_reading = 0, reading = 0;            
+            
+            //if (gas_gauge_read(&adc_reading, &reading))
+            //{
+                //printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
+            //}
             
             port_pin_toggle_output_level(LED_RED_PIN);            
         }
@@ -156,7 +245,7 @@ uint32_t adc_reading = 0, reading = 0;
     
     get_value_VMPPT(&adc_reading, &reading);
 #ifdef DBG_MODE
-    printf("VMPPT ADC Read: %d \t|\t converted: %dV\n", adc_reading, reading);
+    printf("VMPPT ADC Read: %d \t|\t converted: %d.%d V\n", adc_reading, reading/1000, reading%1000);
 #endif
     
     turn_off_adc();
@@ -166,6 +255,19 @@ uint32_t adc_reading = 0, reading = 0;
       
     get_value_TEMP(&adc_reading, &reading);
 #ifdef DBG_MODE
-    printf("TEMP ADC Read: %d \t|\t converted: %d.%dC\n", adc_reading, reading/10, reading%10);
+    printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, reading%10);
 #endif
+
+    //turn_off_adc();
+//
+//
+    //configure_adc_BCAP();
+//
+    //get_value_BCAP(&adc_reading, &reading);
+    //#ifdef DBG_MODE
+    //printf("BCAP ADC Read: %d \t|\t converted: %d\n", adc_reading, reading);
+    //#endif
+//
+    
+    port_get_config_defaults(&pin_conf);
 }
