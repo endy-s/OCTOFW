@@ -38,52 +38,49 @@
 
 
 //====================================================
-// Local Prototypes
-//====================================================
-void configure_OCTO_peripheral(void);
-void configure_extint_channel(void);
-void extint_detection_callback(void);
-
-//====================================================
 // Local Variables
 //====================================================
 uint32_t bcap_counter = 0;
 
 struct port_config pin_conf;
 
+typedef enum
+{
+    E_LIGHT_OFF,
+    E_LIGHT_ON,
+    E_LIGHT_FADE,
+    E_LIGHT_STROBE,
+} E_LIGHT_MODE;
+
+typedef enum
+{
+    E_LIGHT_SLOW,
+    E_LIGHT_MEDIUM_SLOW,
+    E_LIGHT_MEDIUM_FAST,
+    E_LIGHT_FAST,
+} E_LIGHT_FREQ;
 
 
-void configure_extint_channel(void)
+typedef struct
 {
-    //struct extint_chan_conf config_extint_chan;
-    //extint_chan_get_config_defaults(&config_extint_chan);
-    //config_extint_chan.gpio_pin = BCAP_RX_PIN;
-    //config_extint_chan.gpio_pin_mux = BCAP_RX_MUX;
-    //config_extint_chan.gpio_pin_pull = EXTINT_PULL_NONE;
-    //config_extint_chan.detection_criteria = EXTINT_DETECT_HIGH;
-    //extint_chan_set_config(BCAP_RX_INPUT, &config_extint_chan);
-       //
-    //extint_register_callback(extint_detection_callback, BCAP_RX_INPUT, EXTINT_CALLBACK_TYPE_DETECT);
-    //extint_chan_enable_callback(BCAP_RX_INPUT, EXTINT_CALLBACK_TYPE_DETECT);
-}void extint_detection_callback(void)
-{
-    //bool pin_state = port_pin_get_input_level(BCAP_RX_PIN);
-    //if (pin_state)
-    //{
-        
-        
-    //}
-    //else
-    //{
-        port_pin_toggle_output_level(LED_GREEN_PIN);
-        
-        printf("\nCounter Value: %d", tick_elapsed(bcap_counter));
-        
-        bcap_counter = get_tick();
-    //}
-    
-    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
-}
+    E_LIGHT_MODE mode;
+    E_LIGHT_FREQ freq;
+} OCTO_LIGHT;
+
+OCTO_LIGHT light_state;
+
+
+
+//====================================================
+// Local Prototypes
+//====================================================
+void configure_OCTO_peripheral(void);
+void configure_extint_channel(void);
+void extint_detection_callback(void);
+bool detect_bcap_touch(void);
+void change_light_state(E_LIGHT_MODE new_mode, E_LIGHT_FREQ new_freq);
+
+
 
 
 //=============================================================================
@@ -104,7 +101,7 @@ int main (void)
     
     while (true) 
     {
-        if (tick_elapsed(timer) % 2000 == 0)
+        if (tick_elapsed(timer) % 200 == 0)
         {
             
             //if (led_rising)
@@ -130,61 +127,10 @@ int main (void)
                 //}
             //}
             
-             bcap_counter = 0;
-            
-            port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);  // sendPin Register low
-             
-            pin_conf.direction  = PORT_PIN_DIR_INPUT;                          // receivePin to input (pullups are off)
-            pin_conf.input_pull = PORT_PIN_PULL_NONE;
-            port_pin_set_config(BUTTON_0_PIN, &pin_conf);
-             
-            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-            port_pin_set_config(BUTTON_0_PIN, &pin_conf);                       // receivePin to OUTPUT      
-            port_pin_set_output_level(BUTTON_0_PIN, BCAP_ENABLE_INACTIVE);     // pin is now LOW AND OUTPUT
- 
-            delay_us(10);                                                      
- 
-            /* Set buttons as inputs */
-            pin_conf.direction  = PORT_PIN_DIR_INPUT;                          // receivePin to input (pullups are off)
-            pin_conf.input_pull = PORT_PIN_PULL_NONE;
-            port_pin_set_config(BUTTON_0_PIN, &pin_conf);
-            
-            port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_ACTIVE); // sendPin High
-             
-            while ((ioport_get_pin_level(BUTTON_0_PIN) != BUTTON_0_ACTIVE) && (bcap_counter < 0xFFFFFFFF))
+            if (detect_bcap_touch())
             {
-                bcap_counter++;
-            } 
-            
-            //if (bcap_counter > 0xFFFFFFFF)
-            //{
-                //
-            //}                
-             
-            // set receive pin HIGH briefly to charge up fully - because the while loop above will exit when pin is ~ 2.5V
-            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-            port_pin_set_config(BUTTON_0_PIN, &pin_conf);                       
-            port_pin_set_output_level(BUTTON_0_PIN, BCAP_ENABLE_ACTIVE);     // receivePin to OUTPUT - pin is now HIGH AND OUTPUT
-             
-            /* Set buttons as inputs */
-            pin_conf.direction  = PORT_PIN_DIR_INPUT;                          
-            pin_conf.input_pull = PORT_PIN_PULL_NONE;
-            port_pin_set_config(BUTTON_0_PIN, &pin_conf);	                    // receivePin to INPUT (pullup is off)
-                       
-            port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);  // sendPin LOW
-             
-            while ((ioport_get_pin_level(BUTTON_0_PIN) == BUTTON_0_ACTIVE) && (bcap_counter < 0xFFFFFFFF))
-            {
-                bcap_counter++;
+                
             }
-             
-            if (bcap_counter < 0xFFFFFFFF)
-            {
-                port_pin_toggle_output_level(LED_GREEN_PIN);
-                printf("\nbcap counter = %d | %d\n", bcap_counter, timer);
-            }
-            
-             
             
             //uint32_t adc_reading = 0, reading = 0;            
             
@@ -270,4 +216,68 @@ uint32_t adc_reading = 0, reading = 0;
 //
     
     port_get_config_defaults(&pin_conf);
+}
+
+bool detect_bcap_touch(void)
+{
+    bcap_counter = 0;
+    
+    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);  // sendPin Register low
+    
+    pin_conf.direction  = PORT_PIN_DIR_INPUT;                          // receivePin to input (pullups are off)
+    pin_conf.input_pull = PORT_PIN_PULL_NONE;
+    port_pin_set_config(BUTTON_0_PIN, &pin_conf);
+    
+    pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+    port_pin_set_config(BUTTON_0_PIN, &pin_conf);                       // receivePin to OUTPUT
+    port_pin_set_output_level(BUTTON_0_PIN, BCAP_ENABLE_INACTIVE);     // pin is now LOW AND OUTPUT
+    
+    delay_us(10);
+    
+    /* Set buttons as inputs */
+    pin_conf.direction  = PORT_PIN_DIR_INPUT;                          // receivePin to input (pullups are off)
+    pin_conf.input_pull = PORT_PIN_PULL_NONE;
+    port_pin_set_config(BUTTON_0_PIN, &pin_conf);
+    
+    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_ACTIVE); // sendPin High
+    
+    while ((ioport_get_pin_level(BUTTON_0_PIN) != BUTTON_0_ACTIVE) && (bcap_counter < 0xFFFF))
+    {
+        bcap_counter++;
+    }
+    
+    //if (bcap_counter > 0xFFFFFFFF)
+    //{
+    //
+    //}
+    
+    // set receive pin HIGH briefly to charge up fully - because the while loop above will exit when pin is ~ 2.5V
+    pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+    port_pin_set_config(BUTTON_0_PIN, &pin_conf);
+    port_pin_set_output_level(BUTTON_0_PIN, BCAP_ENABLE_ACTIVE);     // receivePin to OUTPUT - pin is now HIGH AND OUTPUT
+    
+    /* Set buttons as inputs */
+    pin_conf.direction  = PORT_PIN_DIR_INPUT;
+    pin_conf.input_pull = PORT_PIN_PULL_NONE;
+    port_pin_set_config(BUTTON_0_PIN, &pin_conf);	                    // receivePin to INPUT (pullup is off)
+    
+    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);  // sendPin LOW
+    
+    while ((ioport_get_pin_level(BUTTON_0_PIN) == BUTTON_0_ACTIVE) && (bcap_counter < 0xFFFF))
+    {
+        bcap_counter++;
+    }
+    
+    if (bcap_counter < 0xFFFF)
+    {
+        port_pin_toggle_output_level(LED_GREEN_PIN);
+        printf("\nbcap counter = %d\n", bcap_counter);
+    }   
+}
+
+
+void change_light_state(E_LIGHT_MODE new_mode, E_LIGHT_FREQ new_freq)
+{
+    
+    
 }
