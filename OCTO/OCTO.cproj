@@ -758,6 +758,9 @@
     <Compile Include="src\ASF\sam0\drivers\extint\extint_sam_d_r\extint.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\main.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\OCTO_USART.c">
       <SubType>compile</SubType>
     </Compile>
