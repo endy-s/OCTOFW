@@ -8,19 +8,16 @@
 #include "OCTO_USART.h"
 #include <string.h>
 #include "main.h"
-#include "OCTO_DAC.h"
-#include "OCTO_ADC.h"
 
 //====================================================
 // USART - Local Variables
 //====================================================
 
 //! [module_inst]
-struct usart_module bt_usart_instance;
+
 struct usart_module dbg_usart_instance;
 //! [module_inst]
 
-bool bt_connected = false;
 bool bt_start_received = false;
 
 //! [USART rx_buffer_var]
@@ -48,9 +45,7 @@ void usart_read_callback(struct usart_module *const usart_module)
     {
         if (rx_buffer[0] == '>')
         {
-            received_bt(bt_message);
-            
-            port_pin_toggle_output_level(LED_GREEN_PIN);
+            bt_received(bt_message);
         }
         else
         {
@@ -73,11 +68,26 @@ void usart_write_callback(struct usart_module *const usart_module)
 }
 
 //=============================================================================
+//! \brief Clean the "received array" of the BT USART.
+//=============================================================================
+void clean_array(int length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        bt_message[i] = 0x00;
+    }
+}
+
+//=============================================================================
 //! \brief Setup Function for USART (Debug and BT).
 //=============================================================================
 void configure_usart(void)
 {
 // General
+    bt_timer = 0;
+    bt_connected = false;
+    poll_requested = false;
+    
     struct usart_config config_usart;
     usart_get_config_defaults(&config_usart);
     
@@ -144,17 +154,14 @@ void bt_usart_receive_job(void)
 //=============================================================================
 //! \brief Treat the received messages at the BT USART.
 //=============================================================================
-void received_bt(uint8_t* received_msg)
+void bt_received(uint8_t* received_msg)
 {
     if (!bt_connected)
     {
         int compare_result = strcmp((const char*) received_msg, "OCTO");
         if (compare_result == 0)
         {
-            change_light_state(E_LIGHT_OFF);
-            uint8_t* init_resp = "<BOARD>";
-            usart_write_buffer_job(&bt_usart_instance, init_resp, 7);
-            bt_connected = true;
+            bt_start_setup();
         }
     }
     else
@@ -183,56 +190,22 @@ void received_bt(uint8_t* received_msg)
             uint8_t* init_resp = "<OK>";
             usart_write_buffer_job(&bt_usart_instance, init_resp, 4);
         }
-        else if (received_msg[0] == 'S')
+        else if(strcmp((const char*) received_msg, "OK") == 0)
         {
-            
-            
+            poll_requested = false;
         }
     }
 }
 
 //=============================================================================
-//! \brief Get the info about the board and send it to the BT USART.
+//! \brief Send the handshake to BT USART.
 //=============================================================================
-void send_board_info()
+void bt_start_setup()
 {
-    uint32_t adc_reading = 0, reading = 0;
-    uint8_t batt_value = 0, temp_value = 0;
-    
-    configure_adc_VMPPT();
-    
-    get_value_VMPPT(&adc_reading, &reading);
-    
-    if (reading > BATT_MAX)
-    {
-        batt_value = 100;
-    }
-    else
-    {
-        batt_value = (reading * 100) / BATT_MAX;
-    }
-    
-    turn_off_adc();
-    configure_adc_TEMP();
-    
-    get_value_TEMP(&adc_reading, &reading);
-    
-    temp_value = reading;
-    
-    uint8_t buf[12];
-    sprintf(buf, "<b=%d;T=%d>", batt_value, temp_value);
-    usart_write_buffer_job(&bt_usart_instance, buf, 12);
-    printf("%s", buf);
-}
-
-
-//=============================================================================
-//! \brief Clean the "received array" of the BT USART.
-//=============================================================================
-void clean_array(int length)
-{
-    for (int i = 0; i < length; i++)
-    {
-        bt_message[i] = 0x00;
-    }
+    change_light_state(E_LIGHT_OFF);
+    uint8_t* init_resp = "<BOARD>";
+    usart_write_buffer_job(&bt_usart_instance, init_resp, 7);
+    bt_timer = 0;
+    bt_connected = true;
+    poll_requested = false;
 }

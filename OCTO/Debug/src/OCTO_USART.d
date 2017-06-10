@@ -149,7 +149,7 @@ src/OCTO_USART.d src/OCTO_USART.o: ../src/OCTO_USART.c \
  ../src/ASF/common/services/serial/sam0_usart/usart_serial.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h \
- ../src/main.h ../src/OCTO_DAC.h ../src/OCTO_ADC.h
+ ../src/main.h
 
 ../src/OCTO_USART.h:
 
@@ -462,7 +462,3 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h:
 
 ../src/main.h:
-
-../src/OCTO_DAC.h:
-
-../src/OCTO_ADC.h:
