@@ -6,6 +6,8 @@ src\ASF\sam0\drivers\extint\extint_callback.c
 
 src\ASF\sam0\drivers\extint\extint_sam_d_r\extint.c
 
+src\Backup.c
+
 src\OCTO_USART.c
 
 src\ASF\common2\services\delay\sam0\systick_counter.c

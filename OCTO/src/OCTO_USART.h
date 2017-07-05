@@ -34,6 +34,7 @@ void bt_usart_receive_job(void);
 void bt_received(uint8_t* received_msg);
 void bt_start_setup(void);
 void bt_request_polling(void);
+void bt_send_light_update(void);
 
 
 

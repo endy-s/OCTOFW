@@ -115,6 +115,7 @@ SUBDIRS :=  \
 C_SRCS +=  \
 ../src/ASF/sam0/drivers/extint/extint_callback.c \
 ../src/ASF/sam0/drivers/extint/extint_sam_d_r/extint.c \
+../src/Backup.c \
 ../src/OCTO_USART.c \
 ../src/ASF/common2/services/delay/sam0/systick_counter.c \
 ../src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.c \
@@ -158,6 +159,7 @@ ASM_SRCS +=
 OBJS +=  \
 src/ASF/sam0/drivers/extint/extint_callback.o \
 src/ASF/sam0/drivers/extint/extint_sam_d_r/extint.o \
+src/Backup.o \
 src/OCTO_USART.o \
 src/ASF/common2/services/delay/sam0/systick_counter.o \
 src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.o \
@@ -194,6 +196,7 @@ src/main.o
 OBJS_AS_ARGS +=  \
 src/ASF/sam0/drivers/extint/extint_callback.o \
 src/ASF/sam0/drivers/extint/extint_sam_d_r/extint.o \
+src/Backup.o \
 src/OCTO_USART.o \
 src/ASF/common2/services/delay/sam0/systick_counter.o \
 src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.o \
@@ -230,6 +233,7 @@ src/main.o
 C_DEPS +=  \
 src/ASF/sam0/drivers/extint/extint_callback.d \
 src/ASF/sam0/drivers/extint/extint_sam_d_r/extint.d \
+src/Backup.d \
 src/OCTO_USART.d \
 src/ASF/common2/services/delay/sam0/systick_counter.d \
 src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.d \
@@ -266,6 +270,7 @@ src/main.d
 C_DEPS_AS_ARGS +=  \
 src/ASF/sam0/drivers/extint/extint_callback.d \
 src/ASF/sam0/drivers/extint/extint_sam_d_r/extint.d \
+src/Backup.d \
 src/OCTO_USART.d \
 src/ASF/common2/services/delay/sam0/systick_counter.d \
 src/ASF/sam0/drivers/rtc/rtc_sam_d_r/rtc_count.d \
@@ -314,6 +319,8 @@ LINKER_SCRIPT_DEP+=  \
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

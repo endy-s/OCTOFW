@@ -45,7 +45,11 @@ void usart_read_callback(struct usart_module *const usart_module)
     {
         if (rx_buffer[0] == '>')
         {
+            //port_pin_toggle_output_level(LED_GREEN_PIN);
             bt_received(bt_message);
+            clean_array(bt_counting);
+            bt_counting = 0;
+            bt_start_received = false;
         }
         else
         {
@@ -175,7 +179,7 @@ void bt_received(uint8_t* received_msg)
                 if (received_msg[index] == 'L')
                 {
                     int new_mode = (E_LIGHT_MODE) received_msg[index+2] - 0x30;
-                    change_light_state(new_mode);
+                    change_light_state(new_mode, false);
                 }
                 else if (received_msg[index] == 'F')
                 {
@@ -202,10 +206,21 @@ void bt_received(uint8_t* received_msg)
 //=============================================================================
 void bt_start_setup()
 {
-    change_light_state(E_LIGHT_OFF);
+    change_light_state(E_LIGHT_OFF, false);
     uint8_t* init_resp = "<BOARD>";
     usart_write_buffer_job(&bt_usart_instance, init_resp, 7);
     bt_timer = 0;
     bt_connected = true;
     poll_requested = false;
+}
+
+//=============================================================================
+//! \brief Send the handshake to BT USART.
+//=============================================================================
+void bt_send_light_update()
+{
+    uint8_t light_update[8];
+    //sprintf(buf, "<B=%3u;T=%2u>", get_battery_percent(), get_temperature_celsius());
+    sprintf(light_update, "<U;L=%u;>", light_state.mode);
+    usart_write_buffer_job(&bt_usart_instance, light_update, 8);
 }
