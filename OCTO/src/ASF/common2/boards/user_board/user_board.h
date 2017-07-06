@@ -107,6 +107,15 @@ void system_board_init(void);
 #define BCAP_ENABLE                 BCAP_ENABLE_PIN
 /** @} */
 
+/** \name GAS GAUGE CC definitions
+ *  @{ */
+#define GAUGE_CC_ENABLE_NAME            "GAUGE_CC Enable"
+#define GAUGE_CC_ENABLE_PIN             PIN_PA10
+#define GAUGE_CC_ENABLE_ACTIVE          true
+#define GAUGE_CC_ENABLE_INACTIVE        !GAUGE_CC_ENABLE_ACTIVE
+#define GAUGE_CC_ENABLE_GPIO            GAUGE_CC_ENABLE_PIN
+#define GAUGE_CC_ENABLE                 GAUGE_CC_ENABLE_PIN
+/** @} */
 
 /**
  * \name DRIVER_BCAP definitions
