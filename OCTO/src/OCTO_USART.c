@@ -162,8 +162,7 @@ void bt_received(uint8_t* received_msg)
 {
     if (!bt_connected)
     {
-        int compare_result = strcmp((const char*) received_msg, "OCTO");
-        if (compare_result == 0)
+        if (strcmp((const char*) received_msg, "OCTO") == 0)
         {
             bt_start_setup();
         }
@@ -187,12 +186,19 @@ void bt_received(uint8_t* received_msg)
                 }
                 else if (received_msg[index] == 'I')
                 {
-                    change_light_bright((uint16_t)(received_msg[index+2] - 0x30)*100);
+                    uint16_t light_perhundred = ((received_msg[index+2] - 0x30) * 10) + (received_msg[index+3] - 0x30);
+                    uint16_t light_perthousand = ((light_perhundred * 850) / 100) + 100;
+                    change_light_bright(light_perthousand * 100);
                 }
             }
             
             uint8_t* init_resp = "<OK>";
             usart_write_buffer_job(&bt_usart_instance, init_resp, 4);
+        }
+        else if (received_msg[0] == 'D')
+        {
+            change_light_state(E_LIGHT_ON, false);
+            bt_connected = false;
         }
         else if(strcmp((const char*) received_msg, "OK") == 0)
         {
@@ -220,7 +226,6 @@ void bt_start_setup()
 void bt_send_light_update()
 {
     uint8_t light_update[8];
-    //sprintf(buf, "<B=%3u;T=%2u>", get_battery_percent(), get_temperature_celsius());
     sprintf(light_update, "<U;L=%u;>", light_state.mode);
     usart_write_buffer_job(&bt_usart_instance, light_update, 8);
 }

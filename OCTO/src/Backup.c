@@ -63,7 +63,7 @@ int main (void)
                 //bcap_low = (bcap_limit_temp/5);
                 //bcap_low += (bcap_low*(1/5));
                 //bcap_high = bcap_low + 10;
-                //change_light_state(E_LIGHT_OFF);
+                //change_light_state(E_LIGHT_OFF, true);
             //}
             //else
             //{
@@ -78,7 +78,7 @@ int main (void)
                     ////{
                     //////sos_mode = false;
                     //////TODO: Create SOS Light mode
-                    ////change_light_state(E_LIGHT_FADE);
+                    ////change_light_state(E_LIGHT_FADE, true);
                     ////
                     ////port_pin_toggle_output_level(LED_RED_PIN);
                     ////}
@@ -104,18 +104,18 @@ int main (void)
                     ////
                     ////if (activated)
                     ////{
-                    ////change_light_state(E_LIGHT_OFF);
+                    ////change_light_state(E_LIGHT_OFF, true);
                     ////}
                     ////else
                     ////{
-                    ////change_light_state(E_LIGHT_ON);
+                    ////change_light_state(E_LIGHT_ON, true);
                     ////}
                     ////}
                     ////else if (bcap_touch_counter >= 8)
                     ////{
                     ////bcap_touch_counter = 0;
                     //////TODO: Create SOS Light mode
-                    ////change_light_state(E_LIGHT_STROBE);
+                    ////change_light_state(E_LIGHT_STROBE, true);
                     ////
                     ////port_pin_toggle_output_level(LED_RED_PIN);
                     ////}
@@ -137,12 +137,12 @@ int main (void)
                             //if (activated)
                             //{
                                 //activated = false;
-                                ////change_light_state(E_LIGHT_OFF);
+                                ////change_light_state(E_LIGHT_OFF, true);
                             //}
                             //else
                             //{
                                 //activated = true;
-                                ////change_light_state(E_LIGHT_ON);
+                                ////change_light_state(E_LIGHT_ON, true);
                             //}
                         //}
                         ////if (bcap_notouch_counter >= 8)
