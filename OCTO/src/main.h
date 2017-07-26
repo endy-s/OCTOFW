@@ -22,13 +22,16 @@
 #define BATT_MAX 4200
 #define BATT_MIN 3300
 
-#define BCAP_THRESOLD 20000
+#define BCAP_THRESOLD_HIGH 1700
+#define BCAP_THRESOLD_LOW  1400
 
 //=============================================================================
 // Local Variables
 //=============================================================================
-uint32_t led_timer, bcap_timer, bcap_counter;
-struct port_config pin_conf;
+uint32_t led_timer, bcap_timer, bt_timer;
+uint32_t bcap_counter, bcap_touch_counter, bcap_notouch_counter;
+bool     poll_requested, sos_mode;
+struct   port_config pin_conf;
 
 typedef enum
 {
@@ -68,6 +71,7 @@ void change_light_bright(uint16_t perthousand);
 void drive_light(void);
 bool update_bright(void);
 void turn_lights(bool on);
+void send_info(void);
 
 
 
