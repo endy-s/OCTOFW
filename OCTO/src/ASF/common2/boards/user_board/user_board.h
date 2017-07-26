@@ -55,41 +55,95 @@ void system_board_init(void);
 
 /** \name LED RED definitions
  *  @{ */
-#define LED_RED_NAME                "LED0 (yellow)"
+#define LED_RED_NAME                "LED0 (bicolor)"
 #define LED_RED_PIN                 PIN_PA14
-#define LED_RED_ACTIVE              false
+#define LED_RED_ACTIVE              true
 #define LED_RED_INACTIVE            !LED_RED_ACTIVE
 #define LED_RED_GPIO                LED_RED_PIN
 #define LED_RED                     LED_RED_PIN
-
-//#define LED_RED_PWM4CTRL_MODULE     TCC0
-//#define LED_RED_PWM4CTRL_CHANNEL    0
-//#define LED_RED_PWM4CTRL_OUTPUT     0
-//#define LED_RED_PWM4CTRL_PIN        PIN_PA14E_TCC0_WO0
-//#define LED_RED_PWM4CTRL_MUX        MUX_PA14E_TCC0_WO0
-//#define LED_RED_PWM4CTRL_PINMUX     PINMUX_PB30E_TCC0_WO0
 /** @} */
 
 
 /** \name LED GREEN definitions
  *  @{ */
-#define LED_GREEN_NAME            "LED0 (yellow)"
-#define LED_GREEN_PIN             PIN_PA15
-#define LED_GREEN_ACTIVE          false
-#define LED_GREEN_INACTIVE        !LED_GREEN_ACTIVE
-#define LED_GREEN_GPIO            LED_GREEN_PIN
-#define LED_GREEN                 LED_GREEN_PIN
+#define LED_GREEN_NAME              "LED1 (bicolor)"
+#define LED_GREEN_PIN               PIN_PA15
+#define LED_GREEN_ACTIVE            true
+#define LED_GREEN_INACTIVE          !LED_GREEN_ACTIVE
+#define LED_GREEN_GPIO              LED_GREEN_PIN
+#define LED_GREEN                   LED_GREEN_PIN
+/** @} */
 
-//#define LED_GREEN_PWM4CTRL_MODULE     TCC0
-//#define LED_GREEN_PWM4CTRL_CHANNEL    0
-//#define LED_GREEN_PWM4CTRL_OUTPUT     0
-//#define LED_GREEN_PWM4CTRL_PIN        PIN_PA14E_TCC0_WO0
-//#define LED_GREEN_PWM4CTRL_MUX        MUX_PA14E_TCC0_WO0
-//#define LED_GREEN_PWM4CTRL_PINMUX     PINMUX_PB30E_TCC0_WO0
+/** \name LED Driver definitions
+ *  @{ */
+#define LED_DRIVER_NAME             "LED Driver"
+#define LED_DRIVER_PIN              PIN_PA01
+#define LED_DRIVER_ACTIVE           true
+#define LED_DRIVER_INACTIVE         !LED_DRIVER_ACTIVE
+#define LED_DRIVER_GPIO             LED_DRIVER_PIN
+#define LED_DRIVER                  LED_DRIVER_PIN
 /** @} */
 
 /** Number of on-board LEDs */
-#define LED_COUNT                 2
+#define LED_COUNT                 3
+
+/** \name BT Module definitions
+ *  @{ */
+#define BT_ENABLE_NAME              "BT Module"
+#define BT_ENABLE_PIN               PIN_PA03
+#define BT_ENABLE_ACTIVE            true
+#define BT_ENABLE_INACTIVE          !BT_ENABLE_ACTIVE
+#define BT_ENABLE_GPIO              BT_ENABLE_PIN
+#define BT_ENABLE                   BT_ENABLE_PIN
+/** @} */
+
+/** \name BCAP definitions
+ *  @{ */
+#define BCAP_ENABLE_NAME            "BCAP Enable"
+#define BCAP_ENABLE_PIN             PIN_PA19
+#define BCAP_ENABLE_ACTIVE          true
+#define BCAP_ENABLE_INACTIVE        !BCAP_ENABLE_ACTIVE
+#define BCAP_ENABLE_GPIO            BCAP_ENABLE_PIN
+#define BCAP_ENABLE                 BCAP_ENABLE_PIN
+/** @} */
+
+/** \name GAS GAUGE CC definitions
+ *  @{ */
+#define GAUGE_CC_ENABLE_NAME            "GAUGE_CC Enable"
+#define GAUGE_CC_ENABLE_PIN             PIN_PA10
+#define GAUGE_CC_ENABLE_ACTIVE          true
+#define GAUGE_CC_ENABLE_INACTIVE        !GAUGE_CC_ENABLE_ACTIVE
+#define GAUGE_CC_ENABLE_GPIO            GAUGE_CC_ENABLE_PIN
+#define GAUGE_CC_ENABLE                 GAUGE_CC_ENABLE_PIN
+/** @} */
+
+/**
+ * \name DRIVER_BCAP definitions
+ *
+ * Wrapper macros for SW0, to ensure common naming across all Xplained Pro
+ * boards.
+ *
+ *  @{ */
+#define SW0_PIN                   PIN_PA18
+#define SW0_ACTIVE                true
+#define SW0_INACTIVE              !SW0_ACTIVE
+#define SW0_EIC_PIN               PIN_PA18A_EIC_EXTINT2
+#define SW0_EIC_MUX               MUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_PINMUX            PINMUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_LINE              2
+/** @} */
+
+
+#define DRIVER_BCAP_NAME          "SW0"
+#define DRIVER_BCAP_PIN           SW0_PIN
+#define DRIVER_BCAP_ACTIVE        SW0_ACTIVE
+#define DRIVER_BCAP_INACTIVE      SW0_INACTIVE
+#define DRIVER_BCAP_EIC_PIN       SW0_EIC_PIN
+#define DRIVER_BCAP_EIC_MUX       SW0_EIC_MUX
+#define DRIVER_BCAP_EIC_PINMUX    SW0_EIC_PINMUX
+#define DRIVER_BCAP_EIC_LINE      SW0_EIC_LINE
+/** @} */
+
 
 /** \name Extension header #1 ADC definitions
  *  @{
@@ -128,18 +182,6 @@ void system_board_init(void);
 #define BT_UART_SERCOM_DMAC_ID_RX   SERCOM1_DMAC_ID_RX
 /** @} */
 
-/** \name Extension header #2 UART definitions
- *  @{
- */
-#define DBG_UART_MODULE              SERCOM3
-#define DBG_UART_SERCOM_MUX_SETTING  USART_RX_1_TX_0_XCK_1
-#define DBG_UART_SERCOM_PINMUX_PAD0  PINMUX_PA22C_SERCOM3_PAD0
-#define DBG_UART_SERCOM_PINMUX_PAD1  PINMUX_PA23C_SERCOM3_PAD1
-#define DBG_UART_SERCOM_PINMUX_PAD2  PINMUX_UNUSED
-#define DBG_UART_SERCOM_PINMUX_PAD3  PINMUX_UNUSED
-#define DBG_UART_SERCOM_DMAC_ID_TX   SERCOM3_DMAC_ID_TX
-#define DBG_UART_SERCOM_DMAC_ID_RX   SERCOM3_DMAC_ID_RX
-/** @} */
 
 
 
@@ -174,15 +216,6 @@ void system_board_init(void);
 #define EXT3_PWM4CTRL_1_PINMUX    PINMUX_PA13E_TCC2_WO1
 /** @} */
 
-/** \name Extension header #3 IRQ/External interrupt definitions
- *  @{
- */
-#define EXT3_IRQ_MODULE           EIC
-#define EXT3_IRQ_INPUT            8
-#define EXT3_IRQ_PIN              PIN_PA28A_EIC_EXTINT8
-#define EXT3_IRQ_MUX              MUX_PA28A_EIC_EXTINT8
-#define EXT3_IRQ_PINMUX           PINMUX_PA28A_EIC_EXTINT8
-/** @} */
 
 /** \name Extension header #3 I2C definitions
  *  @{
@@ -221,26 +254,6 @@ void system_board_init(void);
 /** @} */
 
 
-/** \name USB definitions
- * @{
- */
-#define USB_ID
-#define USB_TARGET_DP_PIN            PIN_PA25G_USB_DP
-#define USB_TARGET_DP_MUX            MUX_PA25G_USB_DP
-#define USB_TARGET_DP_PINMUX         PINMUX_PA25G_USB_DP
-#define USB_TARGET_DM_PIN            PIN_PA24G_USB_DM
-#define USB_TARGET_DM_MUX            MUX_PA24G_USB_DM
-#define USB_TARGET_DM_PINMUX         PINMUX_PA24G_USB_DM
-#define USB_VBUS_PIN                 PIN_PA14
-#define USB_VBUS_EIC_LINE            14
-#define USB_VBUS_EIC_MUX             MUX_PA14A_EIC_EXTINT14
-#define USB_VBUS_EIC_PINMUX          PINMUX_PA14A_EIC_EXTINT14
-#define USB_ID_PIN                   PIN_PA03
-#define USB_ID_EIC_LINE              3
-#define USB_ID_EIC_MUX               MUX_PA03A_EIC_EXTINT3
-#define USB_ID_EIC_PINMUX            PINMUX_PA03A_EIC_EXTINT3
-/** @} */
-
 /** \name Embedded debugger GPIO interface definitions
  * @{
  */
@@ -250,19 +263,6 @@ void system_board_init(void);
 #define EDBG_GPIO3_PIN            PIN_PA21
 /** @} */
 
-/** \name Embedded debugger USART interface definitions
- * @{
- */
-#define EDBG_UART_MODULE          -1 /* Not available on this board */
-#define EDBG_UART_RX_PIN          -1 /* Not available on this board */
-#define EDBG_UART_RX_MUX          -1 /* Not available on this board */
-#define EDBG_UART_RX_PINMUX       -1 /* Not available on this board */
-#define EDBG_UART_RX_SERCOM_PAD   -1 /* Not available on this board */
-#define EDBG_UART_TX_PIN          -1 /* Not available on this board */
-#define EDBG_UART_TX_MUX          -1 /* Not available on this board */
-#define EDBG_UART_TX_PINMUX       -1 /* Not available on this board */
-#define EDBG_UART_TX_SERCOM_PAD   -1 /* Not available on this board */
-/** @} */
 
 /** \name Embedded debugger I2C interface definitions
  * @{
@@ -298,6 +298,33 @@ void system_board_init(void);
 #define EDBG_CDC_SERCOM_PINMUX_PAD3  PINMUX_UNUSED
 #define EDBG_CDC_SERCOM_DMAC_ID_TX   SERCOM3_DMAC_ID_TX
 #define EDBG_CDC_SERCOM_DMAC_ID_RX   SERCOM3_DMAC_ID_RX
+/** @} */
+
+
+/** Enables the transceiver main interrupt. */
+#define ENABLE_TRX_IRQ()     \
+		extint_chan_enable_callback(AT86RFX_IRQ_CHAN, EXTINT_CALLBACK_TYPE_DETECT)
+
+/** Disables the transceiver main interrupt. */
+#define DISABLE_TRX_IRQ()    \
+		extint_chan_disable_callback(AT86RFX_IRQ_CHAN, EXTINT_CALLBACK_TYPE_DETECT)
+
+/** Clears the transceiver main interrupt. */
+#define CLEAR_TRX_IRQ()      \
+		extint_chan_clear_detected(AT86RFX_IRQ_CHAN);
+
+/*
+ * This macro saves the trx interrupt status and disables the trx interrupt.
+ */
+#define ENTER_TRX_REGION()   \
+		{ extint_chan_disable_callback(AT86RFX_IRQ_CHAN, EXTINT_CALLBACK_TYPE_DETECT)
+
+/*
+ *  This macro restores the transceiver interrupt status
+ */
+#define LEAVE_TRX_REGION()   \
+		extint_chan_enable_callback(AT86RFX_IRQ_CHAN, EXTINT_CALLBACK_TYPE_DETECT); }
+
 /** @} */
 
 

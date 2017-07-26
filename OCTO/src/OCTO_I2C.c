@@ -11,11 +11,11 @@
 /** Address of Gas Gauge chip */
 #define GAS_GAUGE_ADDRESS           0x64
 
-#define TIMEOUT 1000
+#define TIMEOUT 100000
 /** Full Scale of the Counting */
 #define FULL_SCALE_GAUGE            0xFFFF
 
-#define DATA_LENGTH 2
+#define DATA_LENGTH 4
 
 
 //=============================================================================
@@ -25,37 +25,67 @@
 struct i2c_master_module gas_gauge_instance;
 static char twi_inited = false;
 
-const uint8_t test_pattern[] = {0xF0, 0x01};
+//To write, you need to pass the address as the first byte of the buffer, and the rest of the buffer is the data
+//To configure the registers it's sending 2 more just to reuse the define and to have sure everything's ok
+static uint8_t configure_registers_cc_buffer[DATA_LENGTH] = {0x01, 0x2E, 0x2E, 0x2E};
+static uint8_t configure_registers_al_buffer[DATA_LENGTH] = {0x01, 0x3C, 0x3C, 0x3C};
+    
+//Didn't find how to read from an specif address (there seems to be no write and read without a stop byte between)
+//Workaround by now: Read all the bytes until you reach the one you want :) sorry
 static uint8_t read_buffer[DATA_LENGTH];
+
 
 void configure_gas_gauge()
 {
-    //! [setup_config]
     struct i2c_master_config config_gas_gauge;
-    //! [setup_config]
-    //! [setup_config_defaults]
-    i2c_master_get_config_defaults(&config_gas_gauge);
-    //! [setup_config_defaults]
     
-    //! [setup_change_config]
+    i2c_master_get_config_defaults(&config_gas_gauge);
+    
     config_gas_gauge.baud_rate   = I2C_MASTER_BAUD_RATE_100KHZ;
     config_gas_gauge.pinmux_pad0 = GAS_GAUGE_I2C_SERCOM_PINMUX_PAD0;
     config_gas_gauge.pinmux_pad1 = GAS_GAUGE_I2C_SERCOM_PINMUX_PAD1;
-    //! [setup_change_config]
     
-    //! [setup_set_config]
     i2c_master_init(&gas_gauge_instance, GAS_GAUGE_I2C_MODULE, &config_gas_gauge);
-    //! [setup_set_config]
-
-    //! [setup_enable]
+    
     i2c_master_enable(&gas_gauge_instance);
-    //! [setup_enable]
+    
+    gas_gauge_config_AL_registers();
 }
 
-char gas_gauge_read()
+void gas_gauge_config_CC_registers()
 {
-    /* Timeout counter. */
-    uint16_t timeout = 0;
+    /* Init i2c packet. */
+    struct i2c_master_packet packet = {
+        .address = GAS_GAUGE_ADDRESS,
+        .data_length = 2,
+        .data = configure_registers_cc_buffer,
+        .ten_bit_address = false,
+        .high_speed = false,
+        .hs_master_code = 0x0,
+    };
+    
+    while (i2c_master_write_packet_wait(&gas_gauge_instance, &packet) != STATUS_OK);
+}
+
+void gas_gauge_config_AL_registers()
+{
+    /* Init i2c packet. */
+    struct i2c_master_packet packet = {
+        .address = GAS_GAUGE_ADDRESS,
+        .data_length = 2,
+        .data = configure_registers_al_buffer,
+        .ten_bit_address = false,
+        .high_speed = false,
+        .hs_master_code = 0x0,
+    };
+    
+    while (i2c_master_write_packet_wait(&gas_gauge_instance, &packet) != STATUS_OK);
+}
+
+bool gas_gauge_read(uint32_t *value, uint32_t *percent)
+{
+    bool ok = false;
+    
     /* Init i2c packet. */
     struct i2c_master_packet packet = {
         .address = GAS_GAUGE_ADDRESS,
@@ -68,16 +98,16 @@ char gas_gauge_read()
     
     /* Read from slave until success. */
     packet.data = read_buffer;
-    while (i2c_master_read_packet_wait(&gas_gauge_instance, &packet) != STATUS_OK) {
-        /* Increment timeout counter and check if timed out. */
-        if (timeout++ == TIMEOUT) {
-            break;
-        }
+    if (i2c_master_read_packet_wait(&gas_gauge_instance, &packet) == STATUS_OK) {
         
-        //uint8_t string[] = "\nI2C read: ";
-        //usart_write_buffer_wait(&gas_gauge_instance, string, sizeof(string));
-        //usart_write_buffer_wait(&gas_gauge_instance, read_buffer, sizeof(string));
+        uint16_t twi_reading = read_buffer[2] << 8 | read_buffer[3];
+        uint16_t twi_percent = ((twi_reading * 100) / FULL_SCALE_GAUGE);
+
+        *value     = twi_reading;
+        *percent   = twi_percent;
+
+        ok = true;
     }
     
-    return true;
+    return ok;
 }

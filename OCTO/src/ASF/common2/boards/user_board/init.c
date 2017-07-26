@@ -29,7 +29,7 @@ void system_board_init(void)
     struct port_config pin_conf;
     port_get_config_defaults(&pin_conf);
 
-    ///* Configure LEDs as outputs, turn them off */
+    // Configure LEDs as outputs, turn them off 
     pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
     port_pin_set_config(LED_RED_PIN, &pin_conf);
     port_pin_set_output_level(LED_RED_PIN, LED_RED_INACTIVE);
@@ -37,8 +37,30 @@ void system_board_init(void)
     port_pin_set_config(LED_GREEN_PIN, &pin_conf);
     port_pin_set_output_level(LED_GREEN_PIN, LED_GREEN_INACTIVE);
 
+    // Configure the Enable of LED Stripe as output, turn it on 
+    port_pin_set_config(LED_DRIVER_PIN, &pin_conf);
+    port_pin_set_output_level(LED_DRIVER_PIN, LED_DRIVER_ACTIVE);
+    
+    // Configure the Enable of BT Module as output, turn it on
+    port_pin_set_config(BT_ENABLE_PIN, &pin_conf);
+    port_pin_set_output_level(BT_ENABLE_PIN, BT_ENABLE_ACTIVE);
+    
+    // Configure the Capacitive Button Pins as output, turn it off
+    port_pin_set_config(BCAP_ENABLE_PIN, &pin_conf);
+    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
+    
+    // Configure the Charge Complete Pin for the Gas Gauge Module as output, turn it off
+    port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
+    port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
+
+
+/* Set buttons as inputs */
+pin_conf.direction  = PORT_PIN_DIR_INPUT;
+pin_conf.input_pull = PORT_PIN_PULL_NONE;
+port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
+
     /* Set buttons as inputs */
     //pin_conf.direction  = PORT_PIN_DIR_INPUT;
-    //pin_conf.input_pull = PORT_PIN_PULL_UP;
-    //port_pin_set_config(BUTTON_0_PIN, &pin_conf);
+    //pin_conf.input_pull = PORT_PIN_PULL_NONE;
+    //port_pin_set_config(BCAP_RX_PIN, &pin_conf);
 }
