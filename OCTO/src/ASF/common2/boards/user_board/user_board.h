@@ -107,6 +107,35 @@ void system_board_init(void);
 #define BCAP_ENABLE                 BCAP_ENABLE_PIN
 /** @} */
 
+
+/**
+ * \name DRIVER_BCAP definitions
+ *
+ * Wrapper macros for SW0, to ensure common naming across all Xplained Pro
+ * boards.
+ *
+ *  @{ */
+#define SW0_PIN                   PIN_PA18
+#define SW0_ACTIVE                true
+#define SW0_INACTIVE              !SW0_ACTIVE
+#define SW0_EIC_PIN               PIN_PA18A_EIC_EXTINT2
+#define SW0_EIC_MUX               MUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_PINMUX            PINMUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_LINE              2
+/** @} */
+
+
+#define DRIVER_BCAP_NAME          "SW0"
+#define DRIVER_BCAP_PIN           SW0_PIN
+#define DRIVER_BCAP_ACTIVE        SW0_ACTIVE
+#define DRIVER_BCAP_INACTIVE      SW0_INACTIVE
+#define DRIVER_BCAP_EIC_PIN       SW0_EIC_PIN
+#define DRIVER_BCAP_EIC_MUX       SW0_EIC_MUX
+#define DRIVER_BCAP_EIC_PINMUX    SW0_EIC_PINMUX
+#define DRIVER_BCAP_EIC_LINE      SW0_EIC_LINE
+/** @} */
+
+
 /** \name Extension header #1 ADC definitions
  *  @{
  */
@@ -119,10 +148,6 @@ void system_board_init(void);
 #define TEMP_ADC_1_PIN             PIN_PA07B_ADC_AIN7
 #define TEMP_ADC_1_MUX             MUX_PA07B_ADC_AIN7
 #define TEMP_ADC_1_PINMUX          PINMUX_PA07B_ADC_AIN7
-//#define BCAP_ADC_2_CHANNEL         6
-//#define BCAP_ADC_2_PIN             PIN_PA06B_ADC_AIN6
-//#define BCAP_ADC_2_MUX             MUX_PA06B_ADC_AIN6
-//#define BCAP_ADC_2_PINMUX          PINMUX_PA06B_ADC_AIN6
 /** @} */
 
 /** \name Extension header #1 I2C definitions
@@ -148,53 +173,6 @@ void system_board_init(void);
 #define BT_UART_SERCOM_DMAC_ID_RX   SERCOM1_DMAC_ID_RX
 /** @} */
 
-/** \name Extension header #2 UART definitions
- *  @{
- */
-//#define DBG_UART_MODULE              SERCOM3
-//#define DBG_UART_SERCOM_MUX_SETTING  USART_RX_1_TX_0_XCK_1
-//#define DBG_UART_SERCOM_PINMUX_PAD0  PINMUX_PA22C_SERCOM3_PAD0
-//#define DBG_UART_SERCOM_PINMUX_PAD1  PINMUX_PA23C_SERCOM3_PAD1
-//#define DBG_UART_SERCOM_PINMUX_PAD2  PINMUX_UNUSED
-//#define DBG_UART_SERCOM_PINMUX_PAD3  PINMUX_UNUSED
-//#define DBG_UART_SERCOM_DMAC_ID_TX   SERCOM3_DMAC_ID_TX
-//#define DBG_UART_SERCOM_DMAC_ID_RX   SERCOM3_DMAC_ID_RX
-/** @} */
-
-/** \name Extension header #3 IRQ/External interrupt definitions
- *  @{
- */
-//#define BCAP_RX_MODULE           EIC
-//#define BCAP_RX_INPUT            2
-//#define BCAP_RX_PIN              PIN_PA18A_EIC_EXTINT2
-//#define BCAP_RX_MUX              MUX_PA18A_EIC_EXTINT2
-//#define BCAP_RX_PINMUX           PINMUX_PA18A_EIC_EXTINT2
-
-#define SW0_PIN                   PIN_PA18
-#define SW0_ACTIVE                true
-#define SW0_INACTIVE              !SW0_ACTIVE
-#define SW0_EIC_PIN               PIN_PA18A_EIC_EXTINT2
-#define SW0_EIC_MUX               MUX_PA18A_EIC_EXTINT2
-#define SW0_EIC_PINMUX            PINMUX_PA18A_EIC_EXTINT2
-#define SW0_EIC_LINE              2
-/** @} */
-
-/**
- * \name Button #0 definitions
- *
- * Wrapper macros for SW0, to ensure common naming across all Xplained Pro
- * boards.
- *
- *  @{ */
-#define BUTTON_0_NAME             "SW0"
-#define BUTTON_0_PIN              SW0_PIN
-#define BUTTON_0_ACTIVE           SW0_ACTIVE
-#define BUTTON_0_INACTIVE         SW0_INACTIVE
-#define BUTTON_0_EIC_PIN          SW0_EIC_PIN
-#define BUTTON_0_EIC_MUX          SW0_EIC_MUX
-#define BUTTON_0_EIC_PINMUX       SW0_EIC_PINMUX
-#define BUTTON_0_EIC_LINE         SW0_EIC_LINE
-/** @} */
 
 
 

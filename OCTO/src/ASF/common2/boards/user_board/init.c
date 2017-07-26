@@ -54,7 +54,7 @@ void system_board_init(void)
 /* Set buttons as inputs */
 pin_conf.direction  = PORT_PIN_DIR_INPUT;
 pin_conf.input_pull = PORT_PIN_PULL_NONE;
-port_pin_set_config(BUTTON_0_PIN, &pin_conf);
+port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
 
     /* Set buttons as inputs */
     //pin_conf.direction  = PORT_PIN_DIR_INPUT;
