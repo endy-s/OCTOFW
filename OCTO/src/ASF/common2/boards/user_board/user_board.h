@@ -97,6 +97,45 @@ void system_board_init(void);
 #define BT_ENABLE                   BT_ENABLE_PIN
 /** @} */
 
+/** \name BCAP definitions
+ *  @{ */
+#define BCAP_ENABLE_NAME            "BCAP Enable"
+#define BCAP_ENABLE_PIN             PIN_PA19
+#define BCAP_ENABLE_ACTIVE          true
+#define BCAP_ENABLE_INACTIVE        !BCAP_ENABLE_ACTIVE
+#define BCAP_ENABLE_GPIO            BCAP_ENABLE_PIN
+#define BCAP_ENABLE                 BCAP_ENABLE_PIN
+/** @} */
+
+
+/**
+ * \name DRIVER_BCAP definitions
+ *
+ * Wrapper macros for SW0, to ensure common naming across all Xplained Pro
+ * boards.
+ *
+ *  @{ */
+#define SW0_PIN                   PIN_PA18
+#define SW0_ACTIVE                true
+#define SW0_INACTIVE              !SW0_ACTIVE
+#define SW0_EIC_PIN               PIN_PA18A_EIC_EXTINT2
+#define SW0_EIC_MUX               MUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_PINMUX            PINMUX_PA18A_EIC_EXTINT2
+#define SW0_EIC_LINE              2
+/** @} */
+
+
+#define DRIVER_BCAP_NAME          "SW0"
+#define DRIVER_BCAP_PIN           SW0_PIN
+#define DRIVER_BCAP_ACTIVE        SW0_ACTIVE
+#define DRIVER_BCAP_INACTIVE      SW0_INACTIVE
+#define DRIVER_BCAP_EIC_PIN       SW0_EIC_PIN
+#define DRIVER_BCAP_EIC_MUX       SW0_EIC_MUX
+#define DRIVER_BCAP_EIC_PINMUX    SW0_EIC_PINMUX
+#define DRIVER_BCAP_EIC_LINE      SW0_EIC_LINE
+/** @} */
+
+
 /** \name Extension header #1 ADC definitions
  *  @{
  */
@@ -134,18 +173,6 @@ void system_board_init(void);
 #define BT_UART_SERCOM_DMAC_ID_RX   SERCOM1_DMAC_ID_RX
 /** @} */
 
-/** \name Extension header #2 UART definitions
- *  @{
- */
-//#define DBG_UART_MODULE              SERCOM3
-//#define DBG_UART_SERCOM_MUX_SETTING  USART_RX_1_TX_0_XCK_1
-//#define DBG_UART_SERCOM_PINMUX_PAD0  PINMUX_PA22C_SERCOM3_PAD0
-//#define DBG_UART_SERCOM_PINMUX_PAD1  PINMUX_PA23C_SERCOM3_PAD1
-//#define DBG_UART_SERCOM_PINMUX_PAD2  PINMUX_UNUSED
-//#define DBG_UART_SERCOM_PINMUX_PAD3  PINMUX_UNUSED
-//#define DBG_UART_SERCOM_DMAC_ID_TX   SERCOM3_DMAC_ID_TX
-//#define DBG_UART_SERCOM_DMAC_ID_RX   SERCOM3_DMAC_ID_RX
-/** @} */
 
 
 
@@ -180,15 +207,6 @@ void system_board_init(void);
 #define EXT3_PWM4CTRL_1_PINMUX    PINMUX_PA13E_TCC2_WO1
 /** @} */
 
-/** \name Extension header #3 IRQ/External interrupt definitions
- *  @{
- */
-#define EXT3_IRQ_MODULE           EIC
-#define EXT3_IRQ_INPUT            8
-#define EXT3_IRQ_PIN              PIN_PA28A_EIC_EXTINT8
-#define EXT3_IRQ_MUX              MUX_PA28A_EIC_EXTINT8
-#define EXT3_IRQ_PINMUX           PINMUX_PA28A_EIC_EXTINT8
-/** @} */
 
 /** \name Extension header #3 I2C definitions
  *  @{
