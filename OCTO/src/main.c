@@ -73,11 +73,11 @@ int main (void)
         drive_light();
         bt_usart_receive_job();
         
-        if (tick_elapsed(bt_timer) % 5000 == 0)
+        if (tick_elapsed(bt_timer) % 2000 == 0)
         {           
-            bt_timer = get_tick();
+            delay_us(750);
             
-            delay_us(1000);
+            bt_timer = get_tick();            
             
             if (bt_connected)
             {
@@ -122,6 +122,7 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
     light_state.freq = E_LIGHT_MEDIUM;
     light_state.led_rising = false;
     light_state.led_bright = LIGHT_MAX;
+    light_state.led_max_bright = LIGHT_MAX;
     change_light_state(light_state.mode, false);
     
 // RTC - Tick (1ms)
@@ -262,7 +263,7 @@ void change_light_freq(E_LIGHT_FREQ new_freq)
 
 void change_light_bright(uint16_t perthousand)
 {
-    light_state.led_bright = perthousand;
+    light_state.led_max_bright = perthousand;
 }
 
 //=============================================================================
@@ -307,7 +308,7 @@ bool update_bright()
     {
         light_state.led_bright++;
         
-        if (light_state.led_bright >= LIGHT_MAX-1)
+        if (light_state.led_bright >= light_state.led_max_bright-1)
         {
             light_state.led_rising = false;
             cycle_complete = true;
@@ -336,7 +337,7 @@ void turn_lights(bool on)
 {
     if (on)
     {
-        set_led_bright_perthousand(LIGHT_MAX);
+        set_led_bright_perthousand(light_state.led_max_bright);
     }
     else
     {

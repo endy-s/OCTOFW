@@ -85,7 +85,7 @@ bool gas_gauge_read(uint32_t *value, uint32_t *percent)
     if (i2c_master_read_packet_wait(&gas_gauge_instance, &packet) == STATUS_OK) {
         
         uint16_t twi_reading = read_buffer[2] << 8 | read_buffer[3];
-        uint16_t twi_percent = (twi_reading * 100) / FULL_SCALE_GAUGE;
+        uint16_t twi_percent = ((twi_reading * 100) / FULL_SCALE_GAUGE) + 1;
 
         *value     = twi_reading;
         *percent   = twi_percent;
