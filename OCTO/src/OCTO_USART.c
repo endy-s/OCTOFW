@@ -188,7 +188,7 @@ void bt_received(uint8_t* received_msg)
                 {
                     uint16_t light_perhundred = ((received_msg[index+2] - 0x30) * 10) + (received_msg[index+3] - 0x30);
                     uint16_t light_perthousand = ((light_perhundred * 850) / 100) + 100;
-                    change_light_bright(light_perthousand * 100);
+                    change_light_bright(light_perthousand);
                 }
             }
             

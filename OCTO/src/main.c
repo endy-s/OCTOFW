@@ -69,18 +69,18 @@ int main (void)
     activated = false;
     
     while (true)
-    {  
+    {         
         drive_light();
         bt_usart_receive_job();
         
         if (tick_elapsed(bt_timer) % 2000 == 0)
-        {           
-            delay_us(750);
+        {
+            delay_us(1000);
             
             bt_timer = get_tick();            
             
             if (bt_connected)
-            {
+            {                
                 uint8_t buf[8]; //13
                 //sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
                 //sprintf(buf, "<B=%3u;>", get_battery_percent());
@@ -111,6 +111,7 @@ void configure_OCTO_peripheral()
     // Configuration
     configure_usart();
     configure_usart_callbacks();
+
 
 #ifdef DBG_MODE
 printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
@@ -381,21 +382,41 @@ uint32_t get_battery_percent()
     
     if (reading > BATT_MAX)
     {
-        // Sign to Gas Gauge that the Charge is Complete
-        pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-        port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
-        port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
+        if (!batt_reached_max)
+        {
+            batt_reached_max = true;
+            
+            gas_gauge_config_CC_registers();
+            // Sign to Gas Gauge that the Charge is Complete
+            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+            port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
+            port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_ACTIVE);
+            gas_gauge_config_AL_registers();
+        }
         
         batt_value = 100;
     }
-    else if (reading < BATT_MIN)
-    {
-        batt_value = 0;
-    }
     else
     {
-        batt_value = ((reading-BATT_MIN) * 100) / (BATT_MAX - BATT_MIN);
+        if (batt_reached_max)
+        {
+            batt_reached_max = false;
+            // Sign to Gas Gauge that the Charge is Complete
+            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+            port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
+            port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
+        }
+        
+        if (reading < BATT_MIN)
+        {
+            batt_value = 0;
+        }
+        else
+        {
+            batt_value = ((reading-BATT_MIN) * 100) / (BATT_MAX - BATT_MIN);
+        }
     }
+    
     
     return batt_value;
 }

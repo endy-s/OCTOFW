@@ -27,7 +27,8 @@ static char twi_inited = false;
 
 //To write, you need to pass the address as the first byte of the buffer, and the rest of the buffer is the data
 //To configure the registers it's sending 2 more just to reuse the define and to have sure everything's ok
-static uint8_t configure_registers_buffer[DATA_LENGTH] = {0x01, 0x2E, 0x2E, 0x2E};
+static uint8_t configure_registers_cc_buffer[DATA_LENGTH] = {0x01, 0x2E, 0x2E, 0x2E};
+static uint8_t configure_registers_al_buffer[DATA_LENGTH] = {0x01, 0x3C, 0x3C, 0x3C};
     
 //Didn't find how to read from an specif address (there seems to be no write and read without a stop byte between)
 //Workaround by now: Read all the bytes until you reach the one you want :) sorry
@@ -48,16 +49,31 @@ void configure_gas_gauge()
     
     i2c_master_enable(&gas_gauge_instance);
     
-    gas_gauge_config_registers();
+    gas_gauge_config_AL_registers();
 }
 
-void gas_gauge_config_registers()
+void gas_gauge_config_CC_registers()
 {
     /* Init i2c packet. */
     struct i2c_master_packet packet = {
         .address = GAS_GAUGE_ADDRESS,
         .data_length = 2,
-        .data = configure_registers_buffer,
+        .data = configure_registers_cc_buffer,
+        .ten_bit_address = false,
+        .high_speed = false,
+        .hs_master_code = 0x0,
+    };
+    
+    while (i2c_master_write_packet_wait(&gas_gauge_instance, &packet) != STATUS_OK);
+}
+
+void gas_gauge_config_AL_registers()
+{
+    /* Init i2c packet. */
+    struct i2c_master_packet packet = {
+        .address = GAS_GAUGE_ADDRESS,
+        .data_length = 2,
+        .data = configure_registers_al_buffer,
         .ten_bit_address = false,
         .high_speed = false,
         .hs_master_code = 0x0,
@@ -85,7 +101,7 @@ bool gas_gauge_read(uint32_t *value, uint32_t *percent)
     if (i2c_master_read_packet_wait(&gas_gauge_instance, &packet) == STATUS_OK) {
         
         uint16_t twi_reading = read_buffer[2] << 8 | read_buffer[3];
-        uint16_t twi_percent = ((twi_reading * 100) / FULL_SCALE_GAUGE) + 1;
+        uint16_t twi_percent = ((twi_reading * 100) / FULL_SCALE_GAUGE);
 
         *value     = twi_reading;
         *percent   = twi_percent;
