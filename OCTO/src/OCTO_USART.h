@@ -11,7 +11,7 @@
 
 #include <asf.h>
 
-#define DBG_MODE
+//#define DBG_MODE
 
 bool bt_connected;
 

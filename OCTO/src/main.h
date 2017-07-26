@@ -19,7 +19,8 @@
 #define LIGHT_MIN 100
 
 //Battery goes from 3,3 to 4,2 (real max is 4,25, but the percent is better using 4,2)
-#define BATT_MAX 4200
+//Using Gas Gauge is ok to use 4,25 to check CC
+#define BATT_MAX 4250
 #define BATT_MIN 3300
 
 #define BCAP_THRESOLD_HIGH 120
@@ -55,6 +56,7 @@ typedef struct
     E_LIGHT_MODE mode;
     E_LIGHT_FREQ freq;
     uint16_t     led_bright;
+    uint16_t     led_max_bright;
     bool         led_rising;
 } OCTO_LIGHT;
 

@@ -41,6 +41,7 @@
 void bt_poll_check(void);
 uint32_t get_battery_percent(void);
 uint32_t get_temperature_celsius(void);
+uint32_t get_gauge_percent(void);
 
 //=============================================================================
 // Local Prototypes
@@ -68,20 +69,23 @@ int main (void)
     activated = false;
     
     while (true)
-    {
+    {  
         drive_light();
-
         bt_usart_receive_job();
         
-        if (tick_elapsed(bt_timer) % 1000 == 0)
-        {
-            bt_timer = get_tick();
+        if (tick_elapsed(bt_timer) % 2000 == 0)
+        {           
+            delay_us(750);
+            
+            bt_timer = get_tick();            
             
             if (bt_connected)
             {
                 uint8_t buf[8]; //13
                 //sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
-                sprintf(buf, "<B=%3u;>", get_battery_percent());
+                //sprintf(buf, "<B=%3u;>", get_battery_percent());
+                get_battery_percent();
+                sprintf(buf, "<B=%3u;>", get_gauge_percent());
             
                 bt_poll_check();
             
@@ -118,6 +122,7 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
     light_state.freq = E_LIGHT_MEDIUM;
     light_state.led_rising = false;
     light_state.led_bright = LIGHT_MAX;
+    light_state.led_max_bright = LIGHT_MAX;
     change_light_state(light_state.mode, false);
     
 // RTC - Tick (1ms)
@@ -147,12 +152,12 @@ printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, 
     
 // I²C - Gas Gaue
     configure_gas_gauge();
-#ifdef DBG_MODE
     if (gas_gauge_read(&adc_reading, &reading))
     {
+#ifdef DBG_MODE
         printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
-    }
 #endif
+    }
 }
 
 
@@ -258,7 +263,7 @@ void change_light_freq(E_LIGHT_FREQ new_freq)
 
 void change_light_bright(uint16_t perthousand)
 {
-    light_state.led_bright = perthousand;
+    light_state.led_max_bright = perthousand;
 }
 
 //=============================================================================
@@ -303,7 +308,7 @@ bool update_bright()
     {
         light_state.led_bright++;
         
-        if (light_state.led_bright >= LIGHT_MAX-1)
+        if (light_state.led_bright >= light_state.led_max_bright-1)
         {
             light_state.led_rising = false;
             cycle_complete = true;
@@ -332,7 +337,7 @@ void turn_lights(bool on)
 {
     if (on)
     {
-        set_led_bright_perthousand(LIGHT_MAX);
+        set_led_bright_perthousand(light_state.led_max_bright);
     }
     else
     {
@@ -345,20 +350,18 @@ void turn_lights(bool on)
 //=============================================================================
 void bt_poll_check()
 {
-    if (bt_connected)
+    //poll_requested turns false into OCTO_USART.c file
+    //If it stills true, the board didn't received the response
+    if (poll_requested) 
     {
-        //poll_requested turns false into OCTO_USART.c file
-        //If it stills true, the board didn't received the response
-        if (poll_requested) 
-        {
-            bt_connected = false;
-            port_pin_toggle_output_level(LED_RED_PIN);
-            port_pin_toggle_output_level(LED_GREEN_PIN);
-        }
-        else 
-        {
-            poll_requested = true;
-        }
+        bt_connected = false;
+        poll_requested = false;
+        port_pin_toggle_output_level(LED_RED_PIN);
+        port_pin_toggle_output_level(LED_GREEN_PIN);
+    }
+    else 
+    {
+        poll_requested = true;
     }
 }
 
@@ -378,6 +381,11 @@ uint32_t get_battery_percent()
     
     if (reading > BATT_MAX)
     {
+        // Sign to Gas Gauge that the Charge is Complete
+        pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+        port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
+        port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
+        
         batt_value = 100;
     }
     else if (reading < BATT_MIN)
@@ -409,4 +417,16 @@ uint32_t get_temperature_celsius()
     temp_value = reading/10;
     
     return temp_value;
+}
+
+//=============================================================================
+//! \brief Get the Gas Gauge's Battery percent info
+//=============================================================================
+uint32_t get_gauge_percent()
+{
+    uint32_t i2c_reading = 0, percent = 0;
+    
+    gas_gauge_read(&i2c_reading, &percent);
+    
+    return percent;
 }
