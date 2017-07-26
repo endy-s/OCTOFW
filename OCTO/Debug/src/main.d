@@ -120,7 +120,13 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/ASF/sam0/drivers/dac/dac.h \
  ../src/ASF/common2/services/delay/delay.h \
  ../src/ASF/common2/services/delay/sam0/systick_counter.h \
- ../src/ASF/common/boards/board.h ../src/ASF/sam0/drivers/port/port.h \
+ ../src/ASF/sam0/drivers/extint/extint.h \
+ ../src/ASF/sam0/drivers/extint/extint_callback.h \
+ ../src/ASF/sam0/drivers/extint/extint_callback.h \
+ ../src/ASF/common/boards/board.h \
+ ../src/ASF/common/services/ioport/ioport.h \
+ ../src/ASF/common/services/ioport/sam0/ioport.h \
+ ../src/ASF/sam0/drivers/port/port.h \
  ../src/ASF/sam0/drivers/rtc/rtc_count.h ../src/config/conf_clocks.h \
  ../src/ASF/sam0/drivers/rtc/rtc_count_interrupt.h \
  ../src/ASF/sam0/drivers/rtc/rtc_count.h \
@@ -393,7 +399,17 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/common2/services/delay/sam0/systick_counter.h:
 
+../src/ASF/sam0/drivers/extint/extint.h:
+
+../src/ASF/sam0/drivers/extint/extint_callback.h:
+
+../src/ASF/sam0/drivers/extint/extint_callback.h:
+
 ../src/ASF/common/boards/board.h:
+
+../src/ASF/common/services/ioport/ioport.h:
+
+../src/ASF/common/services/ioport/sam0/ioport.h:
 
 ../src/ASF/sam0/drivers/port/port.h:
 

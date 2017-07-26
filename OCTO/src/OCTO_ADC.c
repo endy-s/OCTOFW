@@ -58,6 +58,7 @@ bool configure_adc_TEMP (void)
 }
 
 
+
 void turn_off_adc(void)
 {
     adc_disable(&adc_instance);
@@ -95,3 +96,5 @@ void get_value_TEMP (uint32_t *value, uint32_t *converted)
     
     return;
 }
+
+

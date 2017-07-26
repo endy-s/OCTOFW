@@ -12,6 +12,7 @@
 #include <asf.h>
 
 void configure_rtc_count(void);
+void rtc_overflow_callback(void);
 uint32_t get_tick(void);
 uint32_t tick_elapsed(uint32_t reference);
 
