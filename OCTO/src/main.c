@@ -36,62 +36,15 @@
 #include "OCTO_DAC.h"
 #include "OCTO_RTC.h"
 
-//=============================================================================
-// Local Defines
-//=============================================================================
-
-#define LIGHT_MAX 990
-#define LIGHT_MIN 100
-
-//=============================================================================
-// Local Variables
-//=============================================================================
-uint32_t led_timer, bcap_timer;
-struct port_config pin_conf;
-
-typedef enum
-{
-    E_LIGHT_OFF = 0,
-    E_LIGHT_ON,
-    E_LIGHT_FADE,
-    E_LIGHT_STROBE,
-} E_LIGHT_MODE;
-
-typedef enum
-{
-    E_LIGHT_FAST        = 5,
-    E_LIGHT_MEDIUM_FAST = 10,
-    E_LIGHT_MEDIUM      = 15,
-    E_LIGHT_MEDIUM_SLOW = 20,
-    E_LIGHT_SLOW        = 25,
-} E_LIGHT_FREQ;
-
-
-typedef struct
-{
-    E_LIGHT_MODE mode;
-    E_LIGHT_FREQ freq;
-    uint16_t     led_bright;
-    bool         led_rising;
-} OCTO_LIGHT;
-
-OCTO_LIGHT light_state;
+#include "main.h"
 
 
 
 //=============================================================================
 // Local Prototypes
 //=============================================================================
-void configure_OCTO_peripheral(void);
 
-bool detect_bcap_touch(void);
-
-void change_light_state(E_LIGHT_MODE new_mode, E_LIGHT_FREQ new_freq);
-void drive_light(void);
-void turn_off_light(void);
-void turn_on_light(void);
-
-
+//void received_bt(void);
 
 //=============================================================================
 //! \brief Main Function.
@@ -110,28 +63,46 @@ int main (void)
 
         bt_usart_receive_job();
         
-        if (tick_elapsed(bcap_timer) % 500 == 0)
-        {
-            bcap_timer = get_tick();
-            
-            if (detect_bcap_touch())
-            {
-                port_pin_toggle_output_level(LED_GREEN_PIN);
-                
-                E_LIGHT_MODE next_mode = light_state.mode;
-                
-                if (next_mode > E_LIGHT_FADE)
-                {
-                    next_mode = E_LIGHT_OFF;
-                }
-                else
-                {
-                    next_mode++;
-                }
-                
-                change_light_state(next_mode, light_state.freq);
-            }
-        }
+          if (tick_elapsed(bcap_timer) % 900 == 0)
+          {
+              bcap_timer = get_tick();
+              
+              if (detect_bcap_touch())
+              {
+                  //#ifdef DBG_MODE
+                  //printf("\nTOUCH OK - Counter: %d\n", bcap_counter);
+                  //#endif
+                  if (bcap_counter > 0xFFFF) 
+                  {
+                    port_pin_toggle_output_level(LED_GREEN_PIN);
+                    
+                    E_LIGHT_MODE next_mode = light_state.mode;
+                  
+                    if (next_mode > E_LIGHT_FADE)
+                    {
+                        next_mode = E_LIGHT_OFF;
+                    }
+                    else
+                    {
+                        next_mode++;
+                    }
+                  
+                    change_light_state(next_mode);
+                  }                  
+                  
+                  
+              }
+              else
+              {
+                  port_pin_toggle_output_level(LED_RED_PIN);
+                  E_LIGHT_MODE next_mode = light_state.mode;
+              }
+              
+              uint8_t buf[12];
+              sprintf(buf, "<b=%u>", bcap_counter);
+              bt_usart_write_job(buf, 12);
+              
+          }
     }
 }
 
@@ -145,7 +116,7 @@ void configure_OCTO_peripheral()
     delay_init();
     system_interrupt_enable_global();
     
-    port_pin_set_output_level(LED_RED_PIN, LED_RED_ACTIVE);
+    port_pin_toggle_output_level(LED_GREEN_PIN);
     
 // USART
     // Configuration
@@ -158,8 +129,11 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 
 // DAC - LED stripe
     configure_dac();
-    turn_off_light();
-    change_light_state(E_LIGHT_FADE, E_LIGHT_MEDIUM);
+    light_state.mode = E_LIGHT_ON;
+    light_state.freq = E_LIGHT_MEDIUM;
+    light_state.led_rising = false;
+    light_state.led_bright = LIGHT_MAX;
+    change_light_state(light_state.mode);
     
     
 // RTC - Tick (1ms)
@@ -173,7 +147,7 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
     
     get_value_VMPPT(&adc_reading, &reading);
 #ifdef DBG_MODE
-printf("VMPPT ADC Read: %d \t|\t converted: %d.%d V\n", adc_reading, reading/1000, reading%1000);
+printf("VMPPT ADC Read: %d \t|\t converted: %d mV\n", adc_reading, reading);
 #endif
     
     turn_off_adc();
@@ -194,7 +168,9 @@ if (gas_gauge_read(&adc_reading, &reading))
 {
     printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
 }
-#endif    
+#endif
+
+    send_board_info();
 }
 
 
@@ -204,7 +180,7 @@ if (gas_gauge_read(&adc_reading, &reading))
 bool detect_bcap_touch(void)
 {
     bool ok = true;
-    uint32_t bcap_counter = 0;
+    bcap_counter = 0;
     
     // sendPin Register low
     port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
@@ -220,7 +196,7 @@ bool detect_bcap_touch(void)
     // pin is now LOW AND OUTPUT 
     port_pin_set_output_level(DRIVER_BCAP_PIN, BCAP_ENABLE_INACTIVE);     
     
-    delay_us(10);
+    delay_us(100);
     
     // receivePin to input (pullups are off)
     pin_conf.direction  = PORT_PIN_DIR_INPUT;                          
@@ -231,43 +207,45 @@ bool detect_bcap_touch(void)
     port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_ACTIVE); 
     
     // Wait for the detection
-    while ((ioport_get_pin_level(DRIVER_BCAP_PIN) != DRIVER_BCAP_ACTIVE) && (bcap_counter < 0xFFFF))
+    while ((ioport_get_pin_level(DRIVER_BCAP_PIN) != DRIVER_BCAP_ACTIVE) && (bcap_counter < BCAP_THRESOLD))
     {
         bcap_counter++;
     }
     
     // Check if was not a touch - timeout
-    if (bcap_counter < 0xFFFF)
+    if (bcap_counter > BCAP_THRESOLD)
     {
-        // set receive pin HIGH briefly to charge up fully - because the while loop above will exit when pin is ~ 2.5V
-        pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-        port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-        // receivePin to OUTPUT - pin is now HIGH AND OUTPUT
-        port_pin_set_output_level(DRIVER_BCAP_PIN, BCAP_ENABLE_ACTIVE);
+        return false;
+    }        
         
-        // receivePin to INPUT (pullup is off)
-        pin_conf.direction  = PORT_PIN_DIR_INPUT;
-        pin_conf.input_pull = PORT_PIN_PULL_NONE;
-        port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
+    // set receive pin HIGH briefly to charge up fully - because the while loop above will exit when pin is ~ 2.5V
+    pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
+    // receivePin to OUTPUT - pin is now HIGH AND OUTPUT
+    port_pin_set_output_level(DRIVER_BCAP_PIN, BCAP_ENABLE_ACTIVE);
         
-        // sendPin LOW
-        port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
+    // receivePin to INPUT (pullup is off)
+    pin_conf.direction  = PORT_PIN_DIR_INPUT;
+    pin_conf.input_pull = PORT_PIN_PULL_NONE;
+    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
         
-        // Wait for the detection
-        while ((ioport_get_pin_level(DRIVER_BCAP_PIN) == DRIVER_BCAP_ACTIVE) && (bcap_counter < 0xFFFF))
-        {
-            bcap_counter++;
-        }
+    // sendPin LOW
+    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
         
-        // Check if was not a touch - timeout
-        if (bcap_counter < 0xFFFF)
-        {
-            ok = false;
-            
-            #ifdef DBG_MODE
-            printf("\nNOT TOUCH\n");
-            #endif
-        }
+    // Wait for the detection
+    while ((ioport_get_pin_level(DRIVER_BCAP_PIN) == DRIVER_BCAP_ACTIVE) && (bcap_counter < BCAP_THRESOLD))
+    {
+        bcap_counter++;
+    }
+        
+    // Check if was not a touch - timeout
+    if (bcap_counter >= BCAP_THRESOLD)
+    {
+        ok = false;
+
+        #ifdef DBG_MODE
+        printf("\nNOT TOUCH\n");
+        #endif
     }
     
     return ok;
@@ -276,21 +254,27 @@ bool detect_bcap_touch(void)
 //=============================================================================
 //! \brief  Update the light struct
 //=============================================================================
-void change_light_state(E_LIGHT_MODE new_mode, E_LIGHT_FREQ new_freq)
+void change_light_state(E_LIGHT_MODE new_mode)
 {
     light_state.mode = new_mode;
+    
+    //if (light_state.mode <= E_LIGHT_ON)
+    //{
+        //light_state.led_rising = light_state.mode;
+        //light_state.led_bright = 0;
+        //
+        //turn_lights(light_state.mode);
+    //}
+}
+
+void change_light_freq(E_LIGHT_FREQ new_freq)
+{
     light_state.freq = new_freq;
-    
-    if (light_state.mode == E_LIGHT_OFF)
-    {
-        turn_off_light();
-    }
-    else if (light_state.mode == E_LIGHT_ON)
-    {
-        turn_on_light();
-    }
-    
-    printf("\n NEW LIGHT MODE: %d\n", new_mode) ;
+}
+
+void change_light_bright(uint16_t perthousand)
+{
+    light_state.led_bright = perthousand;
 }
 
 //=============================================================================
@@ -300,67 +284,75 @@ void drive_light()
 {
     if (light_state.mode > E_LIGHT_ON)
     {
-        if (tick_elapsed(led_timer) % light_state.freq == 0)
+        if (tick_elapsed(led_timer) % (light_state.freq*5) == 0)
         {
             led_timer = get_tick();
             
-            set_led_bright_percent(light_state.led_bright);
-            
-            if (light_state.led_rising)
+            if (light_state.mode == E_LIGHT_FADE)
             {
-                if (light_state.mode == E_LIGHT_FADE)
-                {
-                    if (light_state.led_bright >= LIGHT_MAX)
-                    {
-                        light_state.led_rising = false;
-                    }
-                    else
-                    {
-                        light_state.led_bright += 1;
-                    }
-                }
-                else // if E_LIGHT_STROBE
-                {
-                    turn_on_light();
-                }
+                set_led_bright_perthousand(light_state.led_bright);
             }
-            else
+            if (update_bright())
             {
-                if (light_state.mode == E_LIGHT_FADE)
-                {
-                    if (light_state.led_bright <= LIGHT_MIN)
-                    {
-                        light_state.led_rising = true;
-                    }
-                    else
-                    {
-                        light_state.led_bright -= 1;
-                    }
-                }
-                else // if E_LIGHT_STROBE
-                {
-                    turn_off_light();
-                }
-                
+                turn_lights(light_state.led_rising);
             }
-        }            
+        }
+    }
+    else if (light_state.mode == E_LIGHT_ON)
+    {
+        turn_lights(true);
+    }
+    else
+    {
+        turn_lights(false);
     }
 }
 
 //=============================================================================
-//! \brief Turn OFF the LED Stripe
+//! \brief Update the level of the brightness
 //=============================================================================
-void turn_off_light()
-{
-    set_led_bright_percent(0);
-    light_state.led_rising = true;
+bool update_bright()
+{   
+    bool cycle_complete = false;
+         
+    if (light_state.led_rising)
+    {
+        light_state.led_bright++;
+        
+        if (light_state.led_bright >= LIGHT_MAX-1)
+        {
+            light_state.led_rising = false;
+            cycle_complete = true;
+        }
+    }
+    else
+    {
+        light_state.led_bright--;
+        
+        if (light_state.led_bright <= LIGHT_MIN-1)
+        {
+            light_state.led_rising = true;
+            cycle_complete = true;
+        }
+    }
+    
+    return cycle_complete;
 }
 
+
 //=============================================================================
-//! \brief Turn ON the LED Stripe
+//! \brief Turn ON/OFF the LED Stripe
+//! \param[in] bool on The on/off - TRUE = ON | FALSE = OFF
 //=============================================================================
-void turn_on_light()
+void turn_lights(bool on)
 {
-    light_state.led_rising = false;
-    set_led_bright_percent(LIGHT_MAX);
+    if (on)
+    {
+        set_led_bright_perthousand(LIGHT_MAX);
+    }
+    else
+    {
+        set_led_bright_perthousand(0);
+    }
 }
+

@@ -21,4 +21,4 @@ void configure_dac()
     config_dac.reference = DAC_REFERENCE_INT1V;
     dac_init(&dac_instance, DAC, &config_dac);
     dac_enable(&dac_instance);
-}//void set_led_bright_percent(uint16_t perthousand){    uint16_t led_data = (perthousand*DAC_LED_FULL)/1000;        dac_chan_write(&dac_instance, DAC_CHANNEL_0, led_data);}
+}//void set_led_bright_perthousand(uint16_t perthousand){    bright_reference = perthousand;        uint16_t led_data = (perthousand*DAC_LED_FULL)/1000;        dac_chan_write(&dac_instance, DAC_CHANNEL_0, led_data);}
