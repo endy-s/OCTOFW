@@ -43,6 +43,8 @@ typedef enum
     E_LIGHT_STROBE,
 } E_LIGHT_MODE;
 
+E_LIGHT_MODE previous_bt_mode;
+
 typedef enum
 {
     E_LIGHT_SLOW = 1,
