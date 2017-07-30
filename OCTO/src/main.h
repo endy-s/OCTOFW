@@ -36,6 +36,7 @@ uint32_t bcap_high, bcap_low, bcap_calibrate_counter, bcap_limit_temp;
 bool     poll_requested;
 bool     batt_reached_max;
 bool     bcap_enable;
+bool     update_app;
 bool     sos_mode, activated;
 struct   port_config pin_conf;
 
@@ -74,7 +75,7 @@ void configure_OCTO_peripheral(void);
 
 bool detect_bcap_touch(void);
 
-void change_light_state(E_LIGHT_MODE new_mode, bool update_app);
+void change_light_state(E_LIGHT_MODE new_mode);
 void change_light_freq(E_LIGHT_FREQ new_freq);
 void change_light_bright(uint16_t perthousand);
 void drive_light(void);

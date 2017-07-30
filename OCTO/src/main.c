@@ -69,6 +69,7 @@ int main (void)
     activated = false;
     batt_reached_max = false;
     bcap_enable = true;
+    update_app = false;
     
     while (true)
     {         
@@ -82,17 +83,26 @@ int main (void)
             if (bt_connected)
             {
                 delay_ms(1);
-                            
-                uint8_t buf[8]; //13 //20
-                //sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
-                //sprintf(buf, "<B=%3u;>", get_battery_percent());
-                get_battery_percent();
-                //sprintf(buf, "<B=%3u;V=%4u;T=%2u;>", get_gauge_percent(), get_battery_percent(), get_temperature_celsius());
-                sprintf(buf, "<B=%3u;>", get_gauge_percent());
+                
+                if (update_app)
+                {
+                    update_app = false;
+                    uint8_t light_update[8];
+                    sprintf(light_update, "<U;L=%1u;>", light_state.mode);
+                    bt_usart_write_job(light_update, 8);
+                }
+                else
+                {
+                    uint8_t buf[8]; //13 //20
+                    //sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
+                    //sprintf(buf, "<B=%3u;>", get_battery_percent());
+                    get_battery_percent();
+                    //sprintf(buf, "<B=%3u;V=%4u;T=%2u;>", get_gauge_percent(), get_battery_percent(), get_temperature_celsius());
+                    sprintf(buf, "<B=%3u;>", get_gauge_percent());
+                    bt_usart_write_job(buf, 8); //13 //20
+                }
                 
                 bt_poll_check();
-                
-                bt_usart_write_job(buf, 8); //13 //20
             }
         }
         
@@ -101,10 +111,10 @@ int main (void)
             if (tick_elapsed(bcap_timer) % 100 == 0)
             {
                 bcap_timer = get_tick();
+                delay_ms(1);
             
                 if (ioport_get_pin_level(INPUT_BCAP_PIN) == INPUT_BCAP_ACTIVE)
                 {
-                    delay_ms(5);
                     if (bcap_touch_counter < BCAP_THRESOLD_COUNTER * 2)
                     {
                         bcap_notouch_counter = 0;
@@ -112,14 +122,15 @@ int main (void)
                     
                         if (bcap_touch_counter == BCAP_THRESOLD_COUNTER)
                         {
+                            update_app = true;
                             if (light_state.mode == E_LIGHT_OFF)
                             {
-                                change_light_state(previous_bt_mode, true);
+                                change_light_state(previous_bt_mode);
                             }
                             else
                             {
                                 previous_bt_mode = light_state.mode;
-                                change_light_state(E_LIGHT_OFF, true);
+                                change_light_state(E_LIGHT_OFF);
                             }
                         }
                     }
@@ -163,7 +174,7 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
     light_state.led_rising = false;
     light_state.led_bright = LIGHT_MAX;
     light_state.led_max_bright = LIGHT_MAX;
-    change_light_state(light_state.mode, false);
+    change_light_state(light_state.mode);
     
 // RTC - Tick (1ms)
     configure_rtc_count();
@@ -203,14 +214,9 @@ printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, 
 //=============================================================================
 //! \brief  Update the light struct
 //=============================================================================
-void change_light_state(E_LIGHT_MODE new_mode, bool update_app)
+void change_light_state(E_LIGHT_MODE new_mode)
 {
     light_state.mode = new_mode;
-    if (update_app) 
-    {
-        bt_send_light_update();
-        delay_ms(1);    //TODO check if need this
-    }
 }
 
 void change_light_freq(E_LIGHT_FREQ new_freq)
