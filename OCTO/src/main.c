@@ -68,78 +68,67 @@ int main (void)
     sos_mode = false;
     activated = false;
     batt_reached_max = false;
+    bcap_enable = true;
     
     while (true)
     {         
         drive_light();
         bt_usart_receive_job();
         
-        //if (tick_elapsed(bt_timer) % 2000 == 0)
-        //{
-            //delay_us(500);
-            //
-            //bt_timer = get_tick();            
-            //
-            //if (bt_connected)
-            //{                
-                //uint8_t buf[8]; //13 //20
-                ////sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
-                ////sprintf(buf, "<B=%3u;>", get_battery_percent());
-                //get_battery_percent();
-                ////sprintf(buf, "<B=%3u;V=%4u;T=%2u;>", get_gauge_percent(), get_battery_percent(), get_temperature_celsius());
-                //sprintf(buf, "<B=%3u;>", get_gauge_percent());
-            //
-                //bt_poll_check();
-            //
-                //bt_usart_write_job(buf, 8); //13 //20
-            //}
-        //}
-        
-        if (tick_elapsed(bcap_timer) % 500 == 0)
+        if (tick_elapsed(bt_timer) % 2000 == 0)
         {
-            delay_us(250);
-            if (ioport_get_pin_level(INPUT_BCAP_PIN) == INPUT_BCAP_ACTIVE)
+            bt_timer = get_tick();
+            
+            if (bt_connected)
             {
-                bcap_notouch_counter = 0;
-                bcap_touch_counter++;
+                delay_ms(1);
+                            
+                uint8_t buf[8]; //13 //20
+                //sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
+                //sprintf(buf, "<B=%3u;>", get_battery_percent());
+                get_battery_percent();
+                //sprintf(buf, "<B=%3u;V=%4u;T=%2u;>", get_gauge_percent(), get_battery_percent(), get_temperature_celsius());
+                sprintf(buf, "<B=%3u;>", get_gauge_percent());
                 
-                if (bcap_touch_counter == 2)
-                {
-                    if (activated)
-                    {
-                        previous_bt_mode = light_state.mode;
-                        change_light_state(E_LIGHT_OFF, true);
-                    }
-                    else
-                    {
-                        change_light_state(previous_bt_mode, true);
-                    }
-                }
+                bt_poll_check();
+                
+                bt_usart_write_job(buf, 8); //13 //20
             }
-            else if(bcap_touch_counter > 0)
+        }
+        
+        if (bcap_enable)
+        {
+            if (tick_elapsed(bcap_timer) % 100 == 0)
             {
-                if (bcap_notouch_counter < 3)
+                bcap_timer = get_tick();
+            
+                if (ioport_get_pin_level(INPUT_BCAP_PIN) == INPUT_BCAP_ACTIVE)
                 {
-                    bcap_notouch_counter++;
-                    
-                    if (bcap_notouch_counter > 1)
+                    delay_ms(5);
+                    if (bcap_touch_counter < BCAP_THRESOLD_COUNTER * 2)
                     {
-                        if (bcap_touch_counter >= 2)
+                        bcap_notouch_counter = 0;
+                        bcap_touch_counter++;
+                    
+                        if (bcap_touch_counter == BCAP_THRESOLD_COUNTER)
                         {
-                            if (activated)
+                            if (light_state.mode == E_LIGHT_OFF)
                             {
-                                activated = false;
+                                change_light_state(previous_bt_mode, true);
                             }
                             else
                             {
-                                activated = true;
+                                previous_bt_mode = light_state.mode;
+                                change_light_state(E_LIGHT_OFF, true);
                             }
                         }
-                        
-                        bcap_touch_counter = 0;
                     }
                 }
-            }
+                else
+                {
+                    bcap_touch_counter = 0;
+                }
+            }    
         }
     }
 }
@@ -169,7 +158,7 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 // DAC - LED stripe
     configure_dac();
     previous_bt_mode = E_LIGHT_ON;
-    light_state.mode = E_LIGHT_FADE;
+    light_state.mode = E_LIGHT_ON;
     light_state.freq = E_LIGHT_MEDIUM;
     light_state.led_rising = false;
     light_state.led_bright = LIGHT_MAX;
@@ -220,6 +209,7 @@ void change_light_state(E_LIGHT_MODE new_mode, bool update_app)
     if (update_app) 
     {
         bt_send_light_update();
+        delay_ms(1);    //TODO check if need this
     }
 }
 
@@ -238,9 +228,17 @@ void change_light_bright(uint16_t perthousand)
 //=============================================================================
 void drive_light()
 {
-    if (light_state.mode > E_LIGHT_ON)
+    if (light_state.mode == E_LIGHT_ON)
     {
-        if (tick_elapsed(led_timer) % (light_state.freq*5) == 0)
+        turn_lights(true);
+    }
+    else if (light_state.mode == E_LIGHT_OFF)
+    {
+        turn_lights(false);
+    }
+    else
+    {
+        if (tick_elapsed(led_timer) % (light_state.freq * 5) == 0)
         {
             led_timer = get_tick();
             
@@ -248,19 +246,12 @@ void drive_light()
             {
                 set_led_bright_perthousand(light_state.led_bright);
             }
+            
             if (update_bright())
             {
                 turn_lights(light_state.led_rising);
             }
         }
-    }
-    else if (light_state.mode == E_LIGHT_ON)
-    {
-        turn_lights(true);
-    }
-    else
-    {
-        turn_lights(false);
     }
 }
 

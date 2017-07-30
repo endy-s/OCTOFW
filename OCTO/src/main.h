@@ -25,6 +25,7 @@
 
 #define BCAP_THRESOLD_HIGH 120
 #define BCAP_THRESOLD_LOW  110
+#define BCAP_THRESOLD_COUNTER 8
 
 //=============================================================================
 // Local Variables
@@ -32,7 +33,10 @@
 uint32_t led_timer, bcap_timer, bt_timer;
 uint32_t bcap_counter, bcap_touch_counter, bcap_notouch_counter;
 uint32_t bcap_high, bcap_low, bcap_calibrate_counter, bcap_limit_temp;
-bool     poll_requested, sos_mode, activated, batt_reached_max;
+bool     poll_requested;
+bool     batt_reached_max;
+bool     bcap_enable;
+bool     sos_mode, activated;
 struct   port_config pin_conf;
 
 typedef enum

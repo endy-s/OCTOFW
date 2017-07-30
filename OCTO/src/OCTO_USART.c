@@ -200,6 +200,10 @@ void bt_received(uint8_t* received_msg)
             change_light_state(E_LIGHT_ON, false);
             bt_connected = false;
         }
+        else if (received_msg[0] == 'C')
+        {
+            bcap_enable = received_msg[2];
+        }
         else if(strcmp((const char*) received_msg, "OK") == 0)
         {
             poll_requested = false;
