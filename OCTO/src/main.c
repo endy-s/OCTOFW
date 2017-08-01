@@ -345,30 +345,29 @@ uint32_t get_battery_percent()
     
     if (reading > BATT_MAX)
     {
-        //if (!batt_reached_max)
-        //{
-            //batt_reached_max = true;
-            //
-            //gas_gauge_config_CC_registers();
-            //// Sign to Gas Gauge that the Charge is Complete
-            //pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-            //port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
-            //port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_ACTIVE);
-            //gas_gauge_config_AL_registers();
-        //}
+        if (!batt_reached_max)
+        {
+            batt_reached_max = true;
+            
+            // Sign to Gas Gauge that the Charge is Complete
+            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+            port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
+            port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_ACTIVE);
+        }
         
         batt_value = 100;
     }
     else
     {
-        //if (batt_reached_max)
-        //{
-            //batt_reached_max = false;
-            //// Sign to Gas Gauge that the Charge is Complete
-            //pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-            //port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
-            //port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
-        //}
+        if (batt_reached_max)
+        {
+            batt_reached_max = false;
+            
+            // Sign to Gas Gauge that the Charge is Complete
+            pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+            port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
+            port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
+        }
         
         if (reading < BATT_MIN)
         {

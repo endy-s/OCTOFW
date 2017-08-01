@@ -20,12 +20,12 @@
 
 //Battery goes from 3,3 to 4,2 (real max is 4,25, but the percent is better using 4,2)
 //Using Gas Gauge is ok to use 4,25 to check CC
-#define BATT_MAX 4200
+#define BATT_MAX 4340
 #define BATT_MIN 3300
 
 #define BCAP_THRESOLD_HIGH 120
 #define BCAP_THRESOLD_LOW  110
-#define BCAP_THRESOLD_COUNTER 8
+#define BCAP_THRESOLD_COUNTER 20
 
 //=============================================================================
 // Local Variables
