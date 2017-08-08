@@ -67,6 +67,9 @@ int main (void)
     bcap_calibrate_counter = 0;
     sos_mode = false;
     activated = false;
+    batt_reached_max = false;
+    bcap_enable = true;
+    update_app = false;
     
     while (true)
     {         
@@ -75,22 +78,68 @@ int main (void)
         
         if (tick_elapsed(bt_timer) % 2000 == 0)
         {
-            delay_us(1000);
-            
-            bt_timer = get_tick();            
+            bt_timer = get_tick();
             
             if (bt_connected)
-            {                
-                uint8_t buf[8]; //13
-                //sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
-                //sprintf(buf, "<B=%3u;>", get_battery_percent());
-                get_battery_percent();
-                sprintf(buf, "<B=%3u;>", get_gauge_percent());
-            
+            {
+                delay_ms(1);
+                
+                if (update_app)
+                {
+                    update_app = false;
+                    uint8_t light_update[8];
+                    sprintf(light_update, "<U;L=%1u;>", light_state.mode);
+                    bt_usart_write_job(light_update, 8);
+                }
+                else
+                {
+                    uint8_t buf[8]; //13 //20
+                    //sprintf(buf, "<B=%3u;T=%2u;>", get_battery_percent(), get_temperature_celsius());
+                    //sprintf(buf, "<B=%3u;>", get_battery_percent());
+                    get_battery_percent();
+                    //sprintf(buf, "<B=%3u;V=%4u;T=%2u;>", get_gauge_percent(), get_battery_percent(), get_temperature_celsius());
+                    sprintf(buf, "<B=%3u;>", get_gauge_percent());
+                    bt_usart_write_job(buf, 8); //13 //20
+                }
+                
                 bt_poll_check();
-            
-                bt_usart_write_job(buf, 8); //13
             }
+        }
+        
+        if (bcap_enable)
+        {
+            if (tick_elapsed(bcap_timer) % 100 == 0)
+            {
+                bcap_timer = get_tick();
+                delay_ms(1);
+            
+                if (ioport_get_pin_level(INPUT_BCAP_PIN) == INPUT_BCAP_ACTIVE)
+                {
+                    if (bcap_touch_counter < BCAP_THRESOLD_COUNTER * 2)
+                    {
+                        bcap_notouch_counter = 0;
+                        bcap_touch_counter++;
+                    
+                        if (bcap_touch_counter == BCAP_THRESOLD_COUNTER)
+                        {
+                            update_app = true;
+                            if (light_state.mode == E_LIGHT_OFF)
+                            {
+                                change_light_state(previous_bt_mode);
+                            }
+                            else
+                            {
+                                previous_bt_mode = light_state.mode;
+                                change_light_state(E_LIGHT_OFF);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    bcap_touch_counter = 0;
+                }
+            }    
         }
     }
 }
@@ -119,12 +168,13 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 
 // DAC - LED stripe
     configure_dac();
+    previous_bt_mode = E_LIGHT_ON;
     light_state.mode = E_LIGHT_ON;
     light_state.freq = E_LIGHT_MEDIUM;
     light_state.led_rising = false;
     light_state.led_bright = LIGHT_MAX;
     light_state.led_max_bright = LIGHT_MAX;
-    change_light_state(light_state.mode, false);
+    change_light_state(light_state.mode);
     
 // RTC - Tick (1ms)
     configure_rtc_count();
@@ -161,100 +211,12 @@ printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, 
     }
 }
 
-
-//=============================================================================
-//! \brief  "Translation" of the CapacitiveSensor Arduino's Library (same comments)
-//=============================================================================
-bool detect_bcap_touch(void)
-{
-    bool ok = true;
-    bcap_counter = 0;
-    
-    // receivePin to OUTPUT
-    pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-    // pin is now LOW AND OUTPUT
-    port_pin_set_output_level(DRIVER_BCAP_PIN, BCAP_ENABLE_INACTIVE);
-    
-    // sendPin Register low
-    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
-    
-    // receivePin to Input (pullups are off)
-    pin_conf.direction  = PORT_PIN_DIR_INPUT;
-    pin_conf.input_pull = PORT_PIN_PULL_NONE;
-    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-    
-    // receivePin to OUTPUT
-    pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-    // pin is now LOW AND OUTPUT 
-    port_pin_set_output_level(DRIVER_BCAP_PIN, BCAP_ENABLE_INACTIVE);     
-    
-    delay_us(100);
-    
-    // receivePin to input (pullups are off)
-    pin_conf.direction  = PORT_PIN_DIR_INPUT;                          
-    pin_conf.input_pull = PORT_PIN_PULL_NONE;
-    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-    
-    // sendPin High
-    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_ACTIVE); 
-    
-    // Wait for the detection
-    while ((ioport_get_pin_level(DRIVER_BCAP_PIN) != DRIVER_BCAP_ACTIVE) && (bcap_counter < bcap_high))
-    {
-        bcap_counter++;
-    }
-    
-    // Check if was a touch - timeout
-    if (bcap_counter > bcap_high)
-    {
-        return ok;
-    }        
-        
-    // set receive pin HIGH briefly to charge up fully - because the while loop above will exit when pin is ~ 2.5V
-    pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-    // receivePin to OUTPUT - pin is now HIGH AND OUTPUT
-    port_pin_set_output_level(DRIVER_BCAP_PIN, BCAP_ENABLE_ACTIVE);
-        
-    // receivePin to INPUT (pullup is off)
-    pin_conf.direction  = PORT_PIN_DIR_INPUT;
-    pin_conf.input_pull = PORT_PIN_PULL_NONE;
-    port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-        
-    // sendPin LOW
-    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
-        
-    // Wait for the detection
-    while ((ioport_get_pin_level(DRIVER_BCAP_PIN) == DRIVER_BCAP_ACTIVE) && (bcap_counter < bcap_high))
-    {
-        bcap_counter++;
-    }
-        
-    // Check if was not a touch
-    if (bcap_counter < bcap_low)
-    {
-        ok = false;
-
-        #ifdef DBG_MODE
-        printf("\nNOT TOUCH\n");
-        #endif
-    }
-    
-    return ok;
-}
-
 //=============================================================================
 //! \brief  Update the light struct
 //=============================================================================
-void change_light_state(E_LIGHT_MODE new_mode, bool update_app)
+void change_light_state(E_LIGHT_MODE new_mode)
 {
     light_state.mode = new_mode;
-    if (update_app) 
-    {
-        bt_send_light_update();
-    }
 }
 
 void change_light_freq(E_LIGHT_FREQ new_freq)
@@ -272,9 +234,17 @@ void change_light_bright(uint16_t perthousand)
 //=============================================================================
 void drive_light()
 {
-    if (light_state.mode > E_LIGHT_ON)
+    if (light_state.mode == E_LIGHT_ON)
     {
-        if (tick_elapsed(led_timer) % (light_state.freq*5) == 0)
+        turn_lights(true);
+    }
+    else if (light_state.mode == E_LIGHT_OFF)
+    {
+        turn_lights(false);
+    }
+    else
+    {
+        if (tick_elapsed(led_timer) % (light_state.freq * 5) == 0)
         {
             led_timer = get_tick();
             
@@ -282,19 +252,12 @@ void drive_light()
             {
                 set_led_bright_perthousand(light_state.led_bright);
             }
+            
             if (update_bright())
             {
                 turn_lights(light_state.led_rising);
             }
         }
-    }
-    else if (light_state.mode == E_LIGHT_ON)
-    {
-        turn_lights(true);
-    }
-    else
-    {
-        turn_lights(false);
     }
 }
 
@@ -386,12 +349,10 @@ uint32_t get_battery_percent()
         {
             batt_reached_max = true;
             
-            gas_gauge_config_CC_registers();
             // Sign to Gas Gauge that the Charge is Complete
             pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
             port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
             port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_ACTIVE);
-            gas_gauge_config_AL_registers();
         }
         
         batt_value = 100;
@@ -401,6 +362,7 @@ uint32_t get_battery_percent()
         if (batt_reached_max)
         {
             batt_reached_max = false;
+            
             // Sign to Gas Gauge that the Charge is Complete
             pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
             port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
@@ -418,7 +380,7 @@ uint32_t get_battery_percent()
     }
     
     
-    return batt_value;
+    return reading;
 }
 
 

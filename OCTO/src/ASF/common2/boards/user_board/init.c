@@ -45,10 +45,6 @@ void system_board_init(void)
     port_pin_set_config(BT_ENABLE_PIN, &pin_conf);
     port_pin_set_output_level(BT_ENABLE_PIN, BT_ENABLE_ACTIVE);
     
-    // Configure the Capacitive Button Pins as output, turn it off
-    port_pin_set_config(BCAP_ENABLE_PIN, &pin_conf);
-    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
-    
     // Configure the Charge Complete Pin for the Gas Gauge Module as output, turn it off
     port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
     port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
@@ -57,10 +53,5 @@ void system_board_init(void)
 /* Set buttons as inputs */
 pin_conf.direction  = PORT_PIN_DIR_INPUT;
 pin_conf.input_pull = PORT_PIN_PULL_NONE;
-port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-
-    /* Set buttons as inputs */
-    //pin_conf.direction  = PORT_PIN_DIR_INPUT;
-    //pin_conf.input_pull = PORT_PIN_PULL_NONE;
-    //port_pin_set_config(BCAP_RX_PIN, &pin_conf);
+port_pin_set_config(INPUT_BCAP_PIN, &pin_conf);
 }

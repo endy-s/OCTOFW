@@ -49,7 +49,7 @@ void configure_gas_gauge()
     
     i2c_master_enable(&gas_gauge_instance);
     
-    gas_gauge_config_AL_registers();
+    gas_gauge_config_CC_registers();
 }
 
 void gas_gauge_config_CC_registers()

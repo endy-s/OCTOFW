@@ -124,24 +124,24 @@ void system_board_init(void);
  * boards.
  *
  *  @{ */
-#define SW0_PIN                   PIN_PA18
+#define SW0_PIN                   PIN_PA24
 #define SW0_ACTIVE                true
 #define SW0_INACTIVE              !SW0_ACTIVE
-#define SW0_EIC_PIN               PIN_PA18A_EIC_EXTINT2
-#define SW0_EIC_MUX               MUX_PA18A_EIC_EXTINT2
-#define SW0_EIC_PINMUX            PINMUX_PA18A_EIC_EXTINT2
-#define SW0_EIC_LINE              2
+#define SW0_EIC_PIN               PIN_PA24A_EIC_EXTINT12
+#define SW0_EIC_MUX               MUX_PA24A_EIC_EXTINT12
+#define SW0_EIC_PINMUX            PINMUX_PA24A_EIC_EXTINT12
+#define SW0_EIC_LINE              12
 /** @} */
 
 
-#define DRIVER_BCAP_NAME          "SW0"
-#define DRIVER_BCAP_PIN           SW0_PIN
-#define DRIVER_BCAP_ACTIVE        SW0_ACTIVE
-#define DRIVER_BCAP_INACTIVE      SW0_INACTIVE
-#define DRIVER_BCAP_EIC_PIN       SW0_EIC_PIN
-#define DRIVER_BCAP_EIC_MUX       SW0_EIC_MUX
-#define DRIVER_BCAP_EIC_PINMUX    SW0_EIC_PINMUX
-#define DRIVER_BCAP_EIC_LINE      SW0_EIC_LINE
+#define INPUT_BCAP_NAME          "SW0"
+#define INPUT_BCAP_PIN           SW0_PIN
+#define INPUT_BCAP_ACTIVE        SW0_ACTIVE
+#define INPUT_BCAP_INACTIVE      SW0_INACTIVE
+#define INPUT_BCAP_EIC_PIN       SW0_EIC_PIN
+#define INPUT_BCAP_EIC_MUX       SW0_EIC_MUX
+#define INPUT_BCAP_EIC_PINMUX    SW0_EIC_PINMUX
+#define INPUT_BCAP_EIC_LINE      SW0_EIC_LINE
 /** @} */
 
 
