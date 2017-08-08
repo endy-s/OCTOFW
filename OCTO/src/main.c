@@ -38,17 +38,6 @@
 
 #include "main.h"
 
-void bt_poll_check(void);
-uint32_t get_battery_percent(void);
-uint32_t get_temperature_celsius(void);
-uint32_t get_gauge_percent(void);
-
-//=============================================================================
-// Local Prototypes
-//=============================================================================
-
-//void received_bt(void);
-
 //=============================================================================
 //! \brief Main Function.
 //=============================================================================
@@ -59,34 +48,66 @@ int main (void)
     // Configure all the peripherals for the OCTO Board
     configure_OCTO_peripheral();    
     //bcap_timer = get_tick();                              //TODO verify if works without this and remove
+    battery_level = 0;
     bcap_touch_counter = 0;
     bcap_notouch_counter = 0;
+    //Deprecated
     bcap_low = 0;
     bcap_high = 0x000FFFFF;
     bcap_limit_temp = 0;
-    bcap_calibrate_counter = 0;
+    bcap_calibrate_counter = 0;    
+    
+    low_power_update_app = false;
+    bcap_enable = true;
+    bcap_update_app = false;
+    batt_reached_max = false;
+    batt_reached_low_power = false;
+    started_warning_blink = false;
+    //TBD
     sos_mode = false;
     activated = false;
-    batt_reached_max = false;
-    bcap_enable = true;
-    update_app = false;
     
     while (true)
     {         
         drive_light();
         bt_usart_receive_job();
         
-        if (tick_elapsed(bt_timer) % 2000 == 0)
+        if (batt_reached_low_power)
+        {
+            manage_low_power_light();
+        }
+        
+        if (tick_elapsed(bt_timer) % 1000 == 0) //1000 ~= 2 secs
         {
             bt_timer = get_tick();
+            delay_ms(1);
+            
+            battery_level = get_gauge_percent();
+            
+            if (battery_level < light_state.low_power_threshold)
+            {
+                if (!batt_reached_low_power)
+                {
+                    enter_low_power_mode();
+                }
+            } 
+            else if (batt_reached_low_power)
+            {
+                exit_low_power_mode();
+            }
             
             if (bt_connected)
-            {
-                delay_ms(1);
-                
-                if (update_app)
+            {                
+                if (low_power_update_app)
                 {
-                    update_app = false;
+                    low_power_update_app = false;
+                    uint8_t light_update[8];
+                    sprintf(light_update, "<U;P=%1u;>", batt_reached_low_power);
+                    bt_usart_write_job(light_update, 8);
+                }
+                else if (bcap_update_app)
+                {
+                    bcap_update_app = false;
                     uint8_t light_update[8];
                     sprintf(light_update, "<U;L=%1u;>", light_state.mode);
                     bt_usart_write_job(light_update, 8);
@@ -98,7 +119,7 @@ int main (void)
                     //sprintf(buf, "<B=%3u;>", get_battery_percent());
                     get_battery_percent();
                     //sprintf(buf, "<B=%3u;V=%4u;T=%2u;>", get_gauge_percent(), get_battery_percent(), get_temperature_celsius());
-                    sprintf(buf, "<B=%3u;>", get_gauge_percent());
+                    sprintf(buf, "<B=%3u;>", battery_level);
                     bt_usart_write_job(buf, 8); //13 //20
                 }
                 
@@ -117,20 +138,19 @@ int main (void)
                 {
                     if (bcap_touch_counter < BCAP_THRESOLD_COUNTER * 2)
                     {
-                        bcap_notouch_counter = 0;
                         bcap_touch_counter++;
                     
                         if (bcap_touch_counter == BCAP_THRESOLD_COUNTER)
                         {
-                            update_app = true;
+                            bcap_update_app = true;
                             if (light_state.mode == E_LIGHT_OFF)
                             {
-                                change_light_state(previous_bt_mode);
+                                change_light_mode(light_bcap_previous_mode);
                             }
                             else
                             {
-                                previous_bt_mode = light_state.mode;
-                                change_light_state(E_LIGHT_OFF);
+                                light_bcap_previous_mode = light_state.mode;
+                                change_light_mode(E_LIGHT_OFF);
                             }
                         }
                     }
@@ -139,7 +159,7 @@ int main (void)
                 {
                     bcap_touch_counter = 0;
                 }
-            }    
+            }
         }
     }
 }
@@ -168,13 +188,13 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 
 // DAC - LED stripe
     configure_dac();
-    previous_bt_mode = E_LIGHT_ON;
+    light_bcap_previous_mode = E_LIGHT_ON;
     light_state.mode = E_LIGHT_ON;
     light_state.freq = E_LIGHT_MEDIUM;
+    light_state.low_power_threshold = 10;
     light_state.led_rising = false;
     light_state.led_bright = LIGHT_MAX;
     light_state.led_max_bright = LIGHT_MAX;
-    change_light_state(light_state.mode);
     
 // RTC - Tick (1ms)
     configure_rtc_count();
@@ -214,7 +234,7 @@ printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, 
 //=============================================================================
 //! \brief  Update the light struct
 //=============================================================================
-void change_light_state(E_LIGHT_MODE new_mode)
+void change_light_mode(E_LIGHT_MODE new_mode)
 {
     light_state.mode = new_mode;
 }
@@ -227,6 +247,62 @@ void change_light_freq(E_LIGHT_FREQ new_freq)
 void change_light_bright(uint16_t perthousand)
 {
     light_state.led_max_bright = perthousand;
+}
+
+void change_light_threshold(uint16_t new_threshold)
+{
+    light_state.low_power_threshold = new_threshold;
+}
+
+//=============================================================================
+//! \brief Low Power functions
+//=============================================================================
+void enter_low_power_mode()
+{    
+    change_light_mode(E_LIGHT_ON);
+    change_light_bright(LIGHT_MAX / 2);
+    
+    low_power_timer = get_tick;
+    started_warning_blink = false;
+    
+    low_power_update_app = true;
+    batt_reached_low_power = true;
+}
+
+void exit_low_power_mode()
+{
+    //change_light_bright(LIGHT_MAX);
+    
+    started_warning_blink = false;
+    
+    batt_reached_low_power = false;
+    low_power_update_app = true;
+}
+
+void manage_low_power_light()
+{    
+    uint32_t light_on_duration = 250;
+    
+    if (!started_warning_blink)
+    {
+        light_on_duration = 15000;
+    }
+    
+    if (tick_elapsed(low_power_timer) % light_on_duration == 0)
+    {
+        low_power_timer = get_tick();
+        delay_ms(1);
+        
+        if (light_state.mode == E_LIGHT_ON)
+        {
+            started_warning_blink = !started_warning_blink;
+            change_light_mode(E_LIGHT_OFF);
+        }
+        else
+        {
+            change_light_mode(E_LIGHT_ON);
+        }
+    }
 }
 
 //=============================================================================
