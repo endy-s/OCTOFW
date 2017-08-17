@@ -265,8 +265,8 @@ void enter_low_power_mode()
     low_power_timer = get_tick;
     started_warning_blink = false;
     
-    low_power_update_app = true;
     batt_reached_low_power = true;
+    low_power_update_app = true;
 }
 
 void exit_low_power_mode()
@@ -281,7 +281,7 @@ void exit_low_power_mode()
 
 void manage_low_power_light()
 {    
-    uint32_t light_on_duration = 250;
+    uint32_t light_on_duration = 500;
     
     if (!started_warning_blink)
     {

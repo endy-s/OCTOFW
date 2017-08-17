@@ -192,7 +192,7 @@ void bt_received(uint8_t* received_msg)
                 else if (received_msg[index] == 'P')
                 {
                     uint16_t new_threshold = ((received_msg[index+2] - 0x30) * 10) + (received_msg[index+3] - 0x30);                    
-                    change_light_bright(new_threshold);
+                    change_light_threshold(new_threshold);
                 }
             }
             
