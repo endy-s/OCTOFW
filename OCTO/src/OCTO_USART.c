@@ -229,7 +229,6 @@ void bt_received(uint8_t* received_msg)
 //=============================================================================
 void bt_start_setup()
 {
-    change_light_mode(E_LIGHT_OFF);
     uint8_t* init_resp = "<BOARD>";
     usart_write_buffer_job(&bt_usart_instance, init_resp, 7);
     bt_timer = 0;

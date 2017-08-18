@@ -62,13 +62,12 @@ int main (void)
     bcap_update_app = false;
     batt_reached_max = false;
     batt_reached_low_power = false;
-    started_warning_blink = false;
     //TBD
     sos_mode = false;
     activated = false;
     
     while (true)
-    {         
+    {
         drive_light();
         bt_usart_receive_job();
         
@@ -193,8 +192,9 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
     light_state.freq = E_LIGHT_MEDIUM;
     light_state.low_power_threshold = 10;
     light_state.led_rising = false;
-    light_state.led_bright = LIGHT_MAX;
-    light_state.led_max_bright = LIGHT_MAX;
+    light_state.led_bright = LIGHT_MIN;
+    light_state.led_max_bright = LIGHT_MAX/2;
+	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
     
 // RTC - Tick (1ms)
     configure_rtc_count();
@@ -261,9 +261,9 @@ void enter_low_power_mode()
 {    
     change_light_mode(E_LIGHT_ON);
     change_light_bright(LIGHT_MAX / 2);
+	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
     
     low_power_timer = get_tick;
-    started_warning_blink = false;
     
     batt_reached_low_power = true;
     low_power_update_app = true;
@@ -273,35 +273,30 @@ void exit_low_power_mode()
 {
     //change_light_bright(LIGHT_MAX);
     
-    started_warning_blink = false;
-    
     batt_reached_low_power = false;
     low_power_update_app = true;
 }
 
 void manage_low_power_light()
 {    
-    uint32_t light_on_duration = 500;
-    
-    if (!started_warning_blink)
-    {
-        light_on_duration = 15000;
-    }
-    
-    if (tick_elapsed(low_power_timer) % light_on_duration == 0)
-    {
-        low_power_timer = get_tick();
-        delay_ms(1);
-        
+    if (tick_elapsed(low_power_timer) % light_state.led_low_power_time == 0)
+    {        
         if (light_state.mode == E_LIGHT_ON)
         {
-            started_warning_blink = !started_warning_blink;
-            change_light_mode(E_LIGHT_OFF);
+            change_light_mode(E_LIGHT_STROBE);
+			change_light_freq(E_LIGHT_FAST);
+			change_light_bright(LIGHT_MAX / 2);
+			light_state.led_rising = false;
+			light_state.led_low_power_time = LOW_POWER_LIGHT_STROBE_TIME;
         }
-        else
+        else if (light_state.mode == E_LIGHT_STROBE)
         {
             change_light_mode(E_LIGHT_ON);
+			light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
         }
+		
+		low_power_timer = get_tick();
+		delay_ms(1);
     }
 }
 

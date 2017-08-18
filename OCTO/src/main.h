@@ -23,8 +23,9 @@
 #define BATT_MAX 4340
 #define BATT_MIN 3300
 
-#define BCAP_THRESOLD_HIGH 120
-#define BCAP_THRESOLD_LOW  110
+#define LOW_POWER_LIGHT_ON_TIME 3000
+#define LOW_POWER_LIGHT_STROBE_TIME 1500
+
 #define BCAP_THRESOLD_COUNTER 20
 
 //=============================================================================
@@ -34,7 +35,7 @@ uint32_t led_timer, bcap_timer, bt_timer, low_power_timer;
 uint32_t bcap_counter, bcap_touch_counter, bcap_notouch_counter;
 uint32_t bcap_high, bcap_low, bcap_calibrate_counter, bcap_limit_temp;
 uint32_t battery_level;
-bool     low_power_update_app, started_warning_blink;
+bool     low_power_update_app;
 bool     batt_reached_max, batt_reached_low_power;
 bool     poll_requested;
 bool     bcap_enable;
@@ -67,6 +68,7 @@ typedef struct
     uint16_t     low_power_threshold;
     uint16_t     led_bright;
     uint16_t     led_max_bright;
+	uint16_t	 led_low_power_time;
     bool         led_rising;
 } OCTO_LIGHT;
 
