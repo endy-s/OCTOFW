@@ -44,27 +44,9 @@
 int main (void)
 {
     system_init();
-    
-    // Configure all the peripherals for the OCTO Board
-    configure_OCTO_peripheral();    
-    //bcap_timer = get_tick();                              //TODO verify if works without this and remove
-    battery_level = 0;
-    bcap_touch_counter = 0;
-    bcap_notouch_counter = 0;
-    //Deprecated
-    bcap_low = 0;
-    bcap_high = 0x000FFFFF;
-    bcap_limit_temp = 0;
-    bcap_calibrate_counter = 0;    
-    
-    low_power_update_app = false;
-    bcap_enable = true;
-    bcap_update_app = false;
-    batt_reached_max = false;
-    batt_reached_low_power = false;
-    //TBD
-    sos_mode = false;
-    activated = false;
+	
+	// Configure all the peripherals for the OCTO Board
+	configure_OCTO_peripheral();
     
     while (true)
     {
@@ -76,14 +58,14 @@ int main (void)
             manage_low_power_light();
         }
         
-        if (tick_elapsed(bt_timer) % 1000 == 0) //1000 ~= 2 secs
+        if (tick_elapsed(bt_timer) % 2000 == 0) //1000 ~= 2 secs
         {
             bt_timer = get_tick();
             delay_ms(1);
             
             battery_level = get_gauge_percent();
             
-            if (battery_level < light_state.low_power_threshold)
+            if (battery_level <= light_state.low_power_threshold)
             {
                 if (!batt_reached_low_power)
                 {
@@ -141,7 +123,10 @@ int main (void)
                     
                         if (bcap_touch_counter == BCAP_THRESOLD_COUNTER)
                         {
-                            bcap_update_app = true;
+                            if (bt_connected)
+							{
+								bcap_update_app = true;	
+							}
                             if (light_state.mode == E_LIGHT_OFF)
                             {
                                 change_light_mode(light_bcap_previous_mode);
@@ -174,6 +159,25 @@ void configure_OCTO_peripheral()
     system_interrupt_enable_global();
     
     port_pin_toggle_output_level(LED_GREEN_PIN);
+	
+//Flags
+	battery_level = 0;
+	bcap_touch_counter = 0;
+	bcap_notouch_counter = 0;
+	//Deprecated
+	bcap_low = 0;
+	bcap_high = 0x000FFFFF;
+	bcap_limit_temp = 0;
+	bcap_calibrate_counter = 0;
+	
+	low_power_update_app = false;
+	bcap_enable = true;
+	bcap_update_app = false;
+	batt_reached_max = false;
+	batt_reached_low_power = true;	//If starts as false it doesn't work :)
+	//TBD
+	sos_mode = false;
+	activated = false;
     
 // USART
     // Configuration
@@ -188,7 +192,7 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 // DAC - LED stripe
     configure_dac();
     light_bcap_previous_mode = E_LIGHT_ON;
-    light_state.mode = E_LIGHT_ON;
+    light_state.mode = E_LIGHT_OFF;
     light_state.freq = E_LIGHT_MEDIUM;
     light_state.low_power_threshold = 10;
     light_state.led_rising = false;
@@ -206,15 +210,18 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
     configure_adc_VMPPT();
     
     get_value_VMPPT(&adc_reading, &reading);
+	battery_level = get_gauge_percent();
+	
 #ifdef DBG_MODE
 printf("VMPPT ADC Read: %d \t|\t converted: %d mV\n", adc_reading, reading);
 #endif
-    
+
+#ifdef DBG_MODE    
     turn_off_adc();
     configure_adc_TEMP();
     
     get_value_TEMP(&adc_reading, &reading);
-#ifdef DBG_MODE
+
 printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, reading%10);
 #endif
 
@@ -222,7 +229,7 @@ printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, 
     port_get_config_defaults(&pin_conf);
     
 // I²C - Gas Gaue
-    configure_gas_gauge();
+    configure_gas_gauge(battery_level);
     if (gas_gauge_read(&adc_reading, &reading))
     {
 #ifdef DBG_MODE
@@ -266,7 +273,10 @@ void enter_low_power_mode()
     low_power_timer = get_tick;
     
     batt_reached_low_power = true;
-    low_power_update_app = true;
+	if (bt_connected)
+	{
+		low_power_update_app = true;
+	}
 }
 
 void exit_low_power_mode()
@@ -274,7 +284,10 @@ void exit_low_power_mode()
     //change_light_bright(LIGHT_MAX);
     
     batt_reached_low_power = false;
-    low_power_update_app = true;
+    if (bt_connected)
+    {
+	    low_power_update_app = true;
+    }
 }
 
 void manage_low_power_light()

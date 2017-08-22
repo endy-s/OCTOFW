@@ -35,8 +35,9 @@ static uint8_t configure_registers_al_buffer[DATA_LENGTH] = {0x01, 0x3C, 0x3C, 0
 static uint8_t read_buffer[DATA_LENGTH];
 
 
-void configure_gas_gauge()
+void configure_gas_gauge(uint32_t battery_percent)
 {
+
     struct i2c_master_config config_gas_gauge;
     
     i2c_master_get_config_defaults(&config_gas_gauge);
@@ -49,7 +50,13 @@ void configure_gas_gauge()
     
     i2c_master_enable(&gas_gauge_instance);
     
+	//gas_gauge_update_percent();
     gas_gauge_config_CC_registers();
+}
+
+void gas_gauge_update_percent(uint32_t new_battery_percent)
+{
+	
 }
 
 void gas_gauge_config_CC_registers()
