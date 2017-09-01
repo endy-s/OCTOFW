@@ -42,8 +42,8 @@
 //! \brief Main Function.
 //=============================================================================
 int main (void)
-{
-    system_init();
+{	
+	system_init();
 	
 	// Configure all the peripherals for the OCTO Board
 	configure_OCTO_peripheral();
@@ -155,10 +155,11 @@ int main (void)
 //=============================================================================
 void configure_OCTO_peripheral()
 {
+// Init system to measure battery level
+	system_board_init_for_battery_measure();
+	
     delay_init();
     system_interrupt_enable_global();
-    
-    port_pin_toggle_output_level(LED_GREEN_PIN);
 	
 //Flags
 	battery_level = 0;
@@ -174,68 +175,66 @@ void configure_OCTO_peripheral()
 	bcap_enable = true;
 	bcap_update_app = false;
 	batt_reached_max = false;
-	batt_reached_low_power = true;	//If starts as false it doesn't work :)
+	batt_reached_low_power = false;	//If starts as false it doesn't work :)
 	//TBD
 	sos_mode = false;
 	activated = false;
-    
+	
+// DAC - LED stripe
+	configure_dac();
+	light_bcap_previous_mode = E_LIGHT_ON;
+	light_state.mode = E_LIGHT_OFF;
+	light_state.freq = E_LIGHT_MEDIUM;
+	light_state.low_power_threshold = 10;
+	light_state.led_rising = false;
+	light_state.led_bright = LIGHT_MIN;
+	light_state.led_max_bright = LIGHT_MAX/2;
+	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
+
+//ADC - VMPPT & TEMP
+	// Initial configuration and read of the Internal ADC - Copy and paste this code into the function of reading
+	uint32_t adc_reading = 0, reading = 0;
+
+// Measure battery
+	battery_level = get_battery_percent();
+
+// Temp is not used yet
+// This legacy code is for future usage
+#ifdef DBG_MODE
+turn_off_adc();
+configure_adc_TEMP();
+	
+get_value_TEMP(&adc_reading, &reading);
+#endif
+
+// After battery measurement, init to run
+	system_board_init();
+
+// I²C - Gas Gauge
+	configure_gas_gauge(battery_level);
+	battery_level = get_gauge_percent();
+	
+#ifdef DBG_MODE
+if (gas_gauge_read(&adc_reading, &reading))
+{
+	printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);		
+}
+#endif
+
 // USART
-    // Configuration
-    configure_usart();
-    configure_usart_callbacks();
-
-
+	// Configuration
+	configure_usart();
+	configure_usart_callbacks();
+	
 #ifdef DBG_MODE
 printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 #endif
 
-// DAC - LED stripe
-    configure_dac();
-    light_bcap_previous_mode = E_LIGHT_ON;
-    light_state.mode = E_LIGHT_OFF;
-    light_state.freq = E_LIGHT_MEDIUM;
-    light_state.low_power_threshold = 10;
-    light_state.led_rising = false;
-    light_state.led_bright = LIGHT_MIN;
-    light_state.led_max_bright = LIGHT_MAX/2;
-	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
-    
 // RTC - Tick (1ms)
     configure_rtc_count();
-    
-//ADC - VMPPT & TEMP
-    // Initial configuration and read of the Internal ADC - Copy and paste this code into the function of reading
-    uint32_t adc_reading = 0, reading = 0;
-
-    configure_adc_VMPPT();
-    
-    get_value_VMPPT(&adc_reading, &reading);
-	battery_level = get_gauge_percent();
 	
-#ifdef DBG_MODE
-printf("VMPPT ADC Read: %d \t|\t converted: %d mV\n", adc_reading, reading);
-#endif
-
-#ifdef DBG_MODE    
-    turn_off_adc();
-    configure_adc_TEMP();
-    
-    get_value_TEMP(&adc_reading, &reading);
-
-printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, reading%10);
-#endif
-
 // Port pins - Capacitive Button
-    port_get_config_defaults(&pin_conf);
-    
-// I²C - Gas Gaue
-    configure_gas_gauge(battery_level);
-    if (gas_gauge_read(&adc_reading, &reading))
-    {
-#ifdef DBG_MODE
-        printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
-#endif
-    }
+	port_get_config_defaults(&pin_conf);    
 }
 
 //=============================================================================
@@ -277,6 +276,8 @@ void enter_low_power_mode()
 	{
 		low_power_update_app = true;
 	}
+	
+	delay_ms(1);
 }
 
 void exit_low_power_mode()
@@ -420,9 +421,8 @@ void bt_poll_check()
 uint32_t get_battery_percent()
 {   
     uint32_t adc_reading = 0, reading = 0;
-    uint8_t batt_value = 0;
+    uint32_t batt_value = 0;
     
-    turn_off_adc();
     configure_adc_VMPPT();
     
     get_value_VMPPT(&adc_reading, &reading);
@@ -464,7 +464,7 @@ uint32_t get_battery_percent()
     }
     
     
-    return reading;
+    return batt_value;
 }
 
 

@@ -13,6 +13,8 @@
 //=============================================================================
 // Defines
 //=============================================================================
+//Debug flag
+//#define DBG_MODE
 
 //Light perthousand range's ideal usage of is from 100 to 950
 #define LIGHT_MAX 950
@@ -23,8 +25,8 @@
 #define BATT_MAX 4340
 #define BATT_MIN 3300
 
-#define LOW_POWER_LIGHT_ON_TIME 3000
-#define LOW_POWER_LIGHT_STROBE_TIME 1500
+#define LOW_POWER_LIGHT_ON_TIME 1000	//3000
+#define LOW_POWER_LIGHT_STROBE_TIME 500	//1500
 
 #define BCAP_THRESOLD_COUNTER 20
 
