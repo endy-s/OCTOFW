@@ -178,9 +178,9 @@ void configure_OCTO_peripheral()
 // DAC - LED stripe
 	configure_dac();
 	light_bcap_previous_mode = E_LIGHT_ON;
-	light_state.mode = E_LIGHT_ON;
+	light_state.mode = E_LIGHT_OFF;
 	light_state.freq = E_LIGHT_MEDIUM;
-	light_state.low_power_threshold = 100;
+	light_state.low_power_threshold = 10;
 	light_state.led_rising = false;
 	light_state.led_bright = LIGHT_MIN;
 	light_state.led_max_bright = LIGHT_MAX/2;
@@ -260,11 +260,11 @@ void change_light_threshold(uint16_t new_threshold)
 //=============================================================================
 void enter_low_power_mode()
 {    
+    low_power_timer = get_tick;
+    
     change_light_mode(E_LIGHT_ON);
     change_light_bright(LIGHT_MAX / 2);
 	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
-    
-    low_power_timer = get_tick;
     
     batt_reached_low_power = true;
 	if (bt_connected)
@@ -291,27 +291,17 @@ void manage_low_power_light()
 {    
     if (tick_elapsed(low_power_timer) % light_state.led_low_power_time == 0)
     {        
-        if (light_state.led_low_power_time == LOW_POWER_LIGHT_BLINK_TIME)
+        if (light_state.mode == E_LIGHT_ON)
         {
-			if (light_state.mode == E_LIGHT_OFF)
-			{
-				change_light_mode(E_LIGHT_ON);
-				low_power_blink_counter++;
-				if (low_power_blink_counter > 2) 
-				{
-					low_power_blink_counter = 0;
-					light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
-				}
-			}
-			else
-			{
-				change_light_mode(E_LIGHT_OFF);
-			}
+            change_light_mode(E_LIGHT_STROBE);
+			change_light_freq(E_LIGHT_FAST);			
+			light_state.led_rising = false;
+			light_state.led_low_power_time = LOW_POWER_LIGHT_STROBE_TIME;
         }
-        else
+        else if (light_state.mode == E_LIGHT_STROBE)
         {
-            change_light_mode(E_LIGHT_OFF);
-            light_state.led_low_power_time = LOW_POWER_LIGHT_BLINK_TIME;
+            change_light_mode(E_LIGHT_ON);
+			light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
         }
 		
 		low_power_timer = get_tick();
