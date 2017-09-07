@@ -160,6 +160,7 @@ void configure_OCTO_peripheral()
 	battery_level = 0;
 	bcap_touch_counter = 0;
 	bcap_notouch_counter = 0;
+	strobe_counter = 0;
 	//Deprecated
 	bcap_low = 0;
 	bcap_high = 0x000FFFFF;
@@ -170,7 +171,7 @@ void configure_OCTO_peripheral()
 	bcap_enable = true;
 	bcap_update_app = false;
 	batt_reached_max = false;
-	batt_reached_low_power = true;	//If starts as false it doesn't work :)
+	batt_reached_low_power = false;
 	//TBD
 	sos_mode = false;
 	activated = false;
@@ -264,6 +265,7 @@ void enter_low_power_mode()
     
     change_light_mode(E_LIGHT_ON);
     change_light_bright(LIGHT_MAX / 2);
+	change_light_freq(E_LIGHT_MEDIUM);
 	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
     
     batt_reached_low_power = true;
@@ -290,11 +292,10 @@ void exit_low_power_mode()
 void manage_low_power_light()
 {    
     if (tick_elapsed(low_power_timer) % light_state.led_low_power_time == 0)
-    {        
+    {
         if (light_state.mode == E_LIGHT_ON)
         {
             change_light_mode(E_LIGHT_STROBE);
-			change_light_freq(E_LIGHT_FAST);			
 			light_state.led_rising = false;
 			light_state.led_low_power_time = LOW_POWER_LIGHT_STROBE_TIME;
         }
@@ -305,6 +306,7 @@ void manage_low_power_light()
         }
 		
 		low_power_timer = get_tick();
+		delay_us(500);
     }
 }
 
@@ -312,7 +314,7 @@ void manage_low_power_light()
 //! \brief  "Drive" the LED Stripe
 //=============================================================================
 void drive_light()
-{
+{	
 	if (batt_reached_low_power)
 	{
 		manage_low_power_light();
@@ -328,18 +330,29 @@ void drive_light()
     }
     else
     {
-        if (tick_elapsed(led_timer) % (light_state.freq * 5) == 0)
+        if (tick_elapsed(led_timer) % ((light_state.freq * 5) + 9) == 0)
         {
-            led_timer = get_tick();
+            static int strb_counter = 0;
+			led_timer = get_tick();
             
             if (light_state.mode == E_LIGHT_FADE)
             {
                 set_led_bright_perthousand(light_state.led_bright);
+				update_bright();
             }
             
-            if (update_bright())
+            if (light_state.mode == E_LIGHT_STROBE)
             {
-                turn_lights(light_state.led_rising);
+				if (strb_counter > LIGHT_MAX/2)
+				{
+					strb_counter = 0;
+					light_state.led_rising = !light_state.led_rising;
+					turn_lights(light_state.led_rising);
+				}
+				else
+				{
+					strb_counter++;
+				}
             }
         }
     }
@@ -354,7 +367,7 @@ bool update_bright()
          
     if (light_state.led_rising)
     {
-        light_state.led_bright++;
+        light_state.led_bright += light_state.led_max_bright/LIGHT_MIN;
         
         if (light_state.led_bright >= light_state.led_max_bright-1)
         {
@@ -364,7 +377,7 @@ bool update_bright()
     }
     else
     {
-        light_state.led_bright--;
+        light_state.led_bright -=  light_state.led_max_bright/LIGHT_MIN;
         
         if (light_state.led_bright <= LIGHT_MIN-1)
         {
