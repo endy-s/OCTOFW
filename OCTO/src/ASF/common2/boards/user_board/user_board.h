@@ -31,6 +31,7 @@ extern "C" {
  */
 
 void system_board_init(void);
+void system_board_init_for_battery_measure(void);
 
 /**
  * \defgroup samd21_xplained_pro_features_group Features
@@ -115,6 +116,16 @@ void system_board_init(void);
 #define GAUGE_CC_ENABLE_INACTIVE        !GAUGE_CC_ENABLE_ACTIVE
 #define GAUGE_CC_ENABLE_GPIO            GAUGE_CC_ENABLE_PIN
 #define GAUGE_CC_ENABLE                 GAUGE_CC_ENABLE_PIN
+/** @} */
+
+/** \name USB Charger EN definitions
+ *  @{ */
+#define USB_EN_ENABLE_NAME            "USB_EN Enable"
+#define USB_EN_ENABLE_PIN             PIN_PA28
+#define USB_EN_ENABLE_ACTIVE          true
+#define USB_EN_ENABLE_INACTIVE        !USB_EN_ENABLE_ACTIVE
+#define USB_EN_ENABLE_GPIO            USB_EN_ENABLE_PIN
+#define USB_EN_ENABLE                 USB_EN_ENABLE_PIN
 /** @} */
 
 /**

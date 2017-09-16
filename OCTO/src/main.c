@@ -38,55 +38,52 @@
 
 #include "main.h"
 
-void bt_poll_check(void);
-uint32_t get_battery_percent(void);
-uint32_t get_temperature_celsius(void);
-uint32_t get_gauge_percent(void);
-
-//=============================================================================
-// Local Prototypes
-//=============================================================================
-
-//void received_bt(void);
-
 //=============================================================================
 //! \brief Main Function.
 //=============================================================================
 int main (void)
-{
-    system_init();
-    
-    // Configure all the peripherals for the OCTO Board
-    configure_OCTO_peripheral();    
-    //bcap_timer = get_tick();                              //TODO verify if works without this and remove
-    bcap_touch_counter = 0;
-    bcap_notouch_counter = 0;
-    bcap_low = 0;
-    bcap_high = 0x000FFFFF;
-    bcap_limit_temp = 0;
-    bcap_calibrate_counter = 0;
-    sos_mode = false;
-    activated = false;
-    batt_reached_max = false;
-    bcap_enable = true;
-    update_app = false;
+{	
+	system_init();
+	
+	// Configure all the peripherals for the OCTO Board
+	configure_OCTO_peripheral();
     
     while (true)
-    {         
+    {
         drive_light();
         bt_usart_receive_job();
-        
-        if (tick_elapsed(bt_timer) % 2000 == 0)
+                
+        if (tick_elapsed(bt_timer) % 2000 == 0) //1000 ~= 2 secs
         {
             bt_timer = get_tick();
+            delay_ms(1);
+            
+            battery_level = get_gauge_percent();
+            
+            if (battery_level <= light_state.low_power_threshold)
+            {
+                if (!batt_reached_low_power)
+                {
+                    enter_low_power_mode();
+                }
+            } 
+            else if (batt_reached_low_power)
+            {
+                exit_low_power_mode();
+            }
             
             if (bt_connected)
-            {
-                delay_ms(1);
-                
-                if (update_app)
+            {                
+                if (low_power_update_app)
                 {
-                    update_app = false;
+                    low_power_update_app = false;
+                    uint8_t light_update[8];
+                    sprintf(light_update, "<U;P=%1u;>", batt_reached_low_power);
+                    bt_usart_write_job(light_update, 8);
+                }
+                else if (bcap_update_app)
+                {
+                    bcap_update_app = false;
                     uint8_t light_update[8];
                     sprintf(light_update, "<U;L=%1u;>", light_state.mode);
                     bt_usart_write_job(light_update, 8);
@@ -98,7 +95,7 @@ int main (void)
                     //sprintf(buf, "<B=%3u;>", get_battery_percent());
                     get_battery_percent();
                     //sprintf(buf, "<B=%3u;V=%4u;T=%2u;>", get_gauge_percent(), get_battery_percent(), get_temperature_celsius());
-                    sprintf(buf, "<B=%3u;>", get_gauge_percent());
+                    sprintf(buf, "<B=%3u;>", battery_level);
                     bt_usart_write_job(buf, 8); //13 //20
                 }
                 
@@ -117,20 +114,22 @@ int main (void)
                 {
                     if (bcap_touch_counter < BCAP_THRESOLD_COUNTER * 2)
                     {
-                        bcap_notouch_counter = 0;
                         bcap_touch_counter++;
                     
                         if (bcap_touch_counter == BCAP_THRESOLD_COUNTER)
                         {
-                            update_app = true;
+                            if (bt_connected)
+							{
+								bcap_update_app = true;	
+							}
                             if (light_state.mode == E_LIGHT_OFF)
                             {
-                                change_light_state(previous_bt_mode);
+                                change_light_mode(light_bcap_previous_mode);
                             }
                             else
                             {
-                                previous_bt_mode = light_state.mode;
-                                change_light_state(E_LIGHT_OFF);
+                                light_bcap_previous_mode = light_state.mode;
+                                change_light_mode(E_LIGHT_OFF);
                             }
                         }
                     }
@@ -139,7 +138,7 @@ int main (void)
                 {
                     bcap_touch_counter = 0;
                 }
-            }    
+            }
         }
     }
 }
@@ -151,70 +150,93 @@ int main (void)
 //=============================================================================
 void configure_OCTO_peripheral()
 {
+// Init system to measure battery level
+	system_board_init_for_battery_measure();
+	
     delay_init();
     system_interrupt_enable_global();
-    
-    port_pin_toggle_output_level(LED_GREEN_PIN);
-    
+	
+//Flags
+	battery_level = 0;
+	bcap_touch_counter = 0;
+	bcap_notouch_counter = 0;
+	strobe_counter = 0;
+	//Deprecated
+	bcap_low = 0;
+	bcap_high = 0x000FFFFF;
+	bcap_limit_temp = 0;
+	bcap_calibrate_counter = 0;
+	
+	low_power_update_app = false;
+	bcap_enable = true;
+	bcap_update_app = false;
+	batt_reached_max = false;
+	batt_reached_low_power = false;
+	//TBD
+	sos_mode = false;
+	activated = false;
+	
+// DAC - LED stripe
+	configure_dac();
+	light_bcap_previous_mode = E_LIGHT_ON;
+	light_state.mode = E_LIGHT_OFF;
+	light_state.freq = E_LIGHT_MEDIUM;
+	light_state.low_power_threshold = 10;
+	light_state.led_rising = false;
+	light_state.led_bright = LIGHT_MIN;
+	light_state.led_max_bright = LIGHT_MAX/2;
+	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
+
+//ADC - VMPPT & TEMP
+	// Initial configuration and read of the Internal ADC - Copy and paste this code into the function of reading
+	uint32_t adc_reading = 0, reading = 0;
+
+// Measure battery
+	battery_level = get_battery_percent();
+
+// Temp is not used yet
+// This legacy code is for future usage
+#ifdef DBG_MODE
+turn_off_adc();
+configure_adc_TEMP();
+	
+get_value_TEMP(&adc_reading, &reading);
+#endif
+
+// After battery measurement, init to run
+	system_board_init();
+
+// I²C - Gas Gauge
+	configure_gas_gauge(battery_level);
+	battery_level = get_gauge_percent();
+	
+#ifdef DBG_MODE
+if (gas_gauge_read(&adc_reading, &reading))
+{
+	printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);		
+}
+#endif
+
 // USART
-    // Configuration
-    configure_usart();
-    configure_usart_callbacks();
-
-
+	// Configuration
+	configure_usart();
+	configure_usart_callbacks();
+	
 #ifdef DBG_MODE
 printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 #endif
 
-// DAC - LED stripe
-    configure_dac();
-    previous_bt_mode = E_LIGHT_ON;
-    light_state.mode = E_LIGHT_ON;
-    light_state.freq = E_LIGHT_MEDIUM;
-    light_state.led_rising = false;
-    light_state.led_bright = LIGHT_MAX;
-    light_state.led_max_bright = LIGHT_MAX;
-    change_light_state(light_state.mode);
-    
 // RTC - Tick (1ms)
     configure_rtc_count();
-    
-//ADC - VMPPT & TEMP
-    // Initial configuration and read of the Internal ADC - Copy and paste this code into the function of reading
-    uint32_t adc_reading = 0, reading = 0;
-
-    configure_adc_VMPPT();
-    
-    get_value_VMPPT(&adc_reading, &reading);
-#ifdef DBG_MODE
-printf("VMPPT ADC Read: %d \t|\t converted: %d mV\n", adc_reading, reading);
-#endif
-    
-    turn_off_adc();
-    configure_adc_TEMP();
-    
-    get_value_TEMP(&adc_reading, &reading);
-#ifdef DBG_MODE
-printf("TEMP ADC Read: %d \t|\t converted: %d.%d C\n", adc_reading, reading/10, reading%10);
-#endif
-
+	
 // Port pins - Capacitive Button
-    port_get_config_defaults(&pin_conf);
-    
-// I²C - Gas Gaue
-    configure_gas_gauge();
-    if (gas_gauge_read(&adc_reading, &reading))
-    {
-#ifdef DBG_MODE
-        printf("Gas gauge read: %d \t|\t percent: %d\n", adc_reading, reading);
-#endif
-    }
+	port_get_config_defaults(&pin_conf);    
 }
 
 //=============================================================================
 //! \brief  Update the light struct
 //=============================================================================
-void change_light_state(E_LIGHT_MODE new_mode)
+void change_light_mode(E_LIGHT_MODE new_mode)
 {
     light_state.mode = new_mode;
 }
@@ -229,11 +251,75 @@ void change_light_bright(uint16_t perthousand)
     light_state.led_max_bright = perthousand;
 }
 
+void change_light_threshold(uint16_t new_threshold)
+{
+    light_state.low_power_threshold = new_threshold;
+}
+
+//=============================================================================
+//! \brief Low Power functions
+//=============================================================================
+void enter_low_power_mode()
+{    
+    low_power_timer = get_tick;
+    
+    change_light_mode(E_LIGHT_ON);
+    change_light_bright(LIGHT_MAX / 2);
+	change_light_freq(E_LIGHT_MEDIUM);
+	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
+    
+    batt_reached_low_power = true;
+	if (bt_connected)
+	{
+		low_power_update_app = true;
+	}
+	
+	delay_ms(1);
+}
+
+void exit_low_power_mode()
+{
+    change_light_mode(E_LIGHT_ON);
+    change_light_bright(LIGHT_MAX / 2);
+    
+    batt_reached_low_power = false;
+    if (bt_connected)
+    {
+	    low_power_update_app = true;
+    }
+}
+
+void manage_low_power_light()
+{    
+    if (tick_elapsed(low_power_timer) % light_state.led_low_power_time == 0)
+    {
+        if (light_state.mode == E_LIGHT_ON)
+        {
+            change_light_mode(E_LIGHT_STROBE);
+			light_state.led_rising = false;
+			light_state.led_low_power_time = LOW_POWER_LIGHT_STROBE_TIME;
+        }
+        else if (light_state.mode == E_LIGHT_STROBE)
+        {
+            change_light_mode(E_LIGHT_ON);
+			light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
+        }
+		
+		low_power_timer = get_tick();
+		delay_us(500);
+    }
+}
+
 //=============================================================================
 //! \brief  "Drive" the LED Stripe
 //=============================================================================
 void drive_light()
-{
+{	
+	if (batt_reached_low_power)
+	{
+		manage_low_power_light();
+	}
+
     if (light_state.mode == E_LIGHT_ON)
     {
         turn_lights(true);
@@ -244,18 +330,29 @@ void drive_light()
     }
     else
     {
-        if (tick_elapsed(led_timer) % (light_state.freq * 5) == 0)
+        if (tick_elapsed(led_timer) % ((light_state.freq * 5) + 9) == 0)
         {
-            led_timer = get_tick();
+            static int strb_counter = 0;
+			led_timer = get_tick();
             
             if (light_state.mode == E_LIGHT_FADE)
             {
                 set_led_bright_perthousand(light_state.led_bright);
+				update_bright();
             }
             
-            if (update_bright())
+            if (light_state.mode == E_LIGHT_STROBE)
             {
-                turn_lights(light_state.led_rising);
+				if (strb_counter > LIGHT_MAX/2)
+				{
+					strb_counter = 0;
+					light_state.led_rising = !light_state.led_rising;
+					turn_lights(light_state.led_rising);
+				}
+				else
+				{
+					strb_counter++;
+				}
             }
         }
     }
@@ -270,7 +367,7 @@ bool update_bright()
          
     if (light_state.led_rising)
     {
-        light_state.led_bright++;
+        light_state.led_bright += light_state.led_max_bright/LIGHT_MIN;
         
         if (light_state.led_bright >= light_state.led_max_bright-1)
         {
@@ -280,7 +377,7 @@ bool update_bright()
     }
     else
     {
-        light_state.led_bright--;
+        light_state.led_bright -=  light_state.led_max_bright/LIGHT_MIN;
         
         if (light_state.led_bright <= LIGHT_MIN-1)
         {
@@ -336,9 +433,8 @@ void bt_poll_check()
 uint32_t get_battery_percent()
 {   
     uint32_t adc_reading = 0, reading = 0;
-    uint8_t batt_value = 0;
+    uint32_t batt_value = 0;
     
-    turn_off_adc();
     configure_adc_VMPPT();
     
     get_value_VMPPT(&adc_reading, &reading);
@@ -380,7 +476,7 @@ uint32_t get_battery_percent()
     }
     
     
-    return reading;
+    return batt_value;
 }
 
 

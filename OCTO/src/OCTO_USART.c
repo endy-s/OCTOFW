@@ -177,8 +177,7 @@ void bt_received(uint8_t* received_msg)
             {
                 if (received_msg[index] == 'L')
                 {
-                    int new_mode = (E_LIGHT_MODE) received_msg[index+2] - 0x30;
-                    change_light_state(new_mode);
+                    change_light_mode((E_LIGHT_MODE) received_msg[index+2] - 0x30);
                 }
                 else if (received_msg[index] == 'F')
                 {
@@ -187,8 +186,15 @@ void bt_received(uint8_t* received_msg)
                 else if (received_msg[index] == 'I')
                 {
                     uint16_t light_perhundred = ((received_msg[index+2] - 0x30) * 10) + (received_msg[index+3] - 0x30);
-                    uint16_t light_perthousand = ((light_perhundred * 850) / 100) + 100;
+                    uint16_t light_perthousand = ((light_perhundred * (LIGHT_MAX - LIGHT_MIN)) / LIGHT_MIN) + LIGHT_MIN;
                     change_light_bright(light_perthousand);
+					index++;
+                }
+                else if (received_msg[index] == 'P')
+                {
+                    uint16_t new_threshold = ((received_msg[index+2] - 0x30) * 10) + (received_msg[index+3] - 0x30);
+                    change_light_threshold(new_threshold);
+					index++;
                 }
             }
             
@@ -197,7 +203,7 @@ void bt_received(uint8_t* received_msg)
         }
         else if (received_msg[0] == 'D')
         {
-            change_light_state(E_LIGHT_ON);
+            change_light_mode(E_LIGHT_ON);
             bt_connected = false;
         }
         else if (received_msg[0] == 'C')
@@ -225,7 +231,6 @@ void bt_received(uint8_t* received_msg)
 //=============================================================================
 void bt_start_setup()
 {
-    change_light_state(E_LIGHT_OFF);
     uint8_t* init_resp = "<BOARD>";
     usart_write_buffer_job(&bt_usart_instance, init_resp, 7);
     bt_timer = 0;
