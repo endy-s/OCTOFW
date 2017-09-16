@@ -100,6 +100,10 @@ int main (void)
                 }
                 
                 bt_poll_check();
+            } else if (poll_requested)
+            {
+				poll_requested = false;
+				change_bt_enable(true);
             }
         }
         
@@ -161,11 +165,7 @@ void configure_OCTO_peripheral()
 	bcap_touch_counter = 0;
 	bcap_notouch_counter = 0;
 	strobe_counter = 0;
-	//Deprecated
-	bcap_low = 0;
-	bcap_high = 0x000FFFFF;
-	bcap_limit_temp = 0;
-	bcap_calibrate_counter = 0;
+	poll_requested = false;
 	
 	low_power_update_app = false;
 	bcap_enable = true;
@@ -411,12 +411,14 @@ void turn_lights(bool on)
 //=============================================================================
 void bt_poll_check()
 {
-    //poll_requested turns false into OCTO_USART.c file
-    //If it stills true, the board didn't received the response
+    // The poll_requested flag turns false into OCTO_USART.c file
+	//when receive the poll response message, when BT connects and is turned off after lose connection
+    // If run this function and it stills true, the board didn't received the response
     if (poll_requested) 
     {
         bt_connected = false;
-        poll_requested = false;
+		
+		change_bt_enable(false);
         port_pin_toggle_output_level(LED_RED_PIN);
         port_pin_toggle_output_level(LED_GREEN_PIN);
     }

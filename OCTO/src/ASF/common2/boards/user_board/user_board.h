@@ -32,6 +32,7 @@ extern "C" {
 
 void system_board_init(void);
 void system_board_init_for_battery_measure(void);
+void change_bt_enable(bool enable);
 
 /**
  * \defgroup samd21_xplained_pro_features_group Features
