@@ -29,9 +29,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  12 .debug_line   0001705d  00000000  00000000  000a1cc0  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_str    00088cad  00000000  00000000  000b8d1d  2**0
+ 13 .debug_str    00088ce8  00000000  00000000  000b8d1d  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_frame  000033c4  00000000  00000000  001419cc  2**2
+ 14 .debug_frame  000033c4  00000000  00000000  00141a08  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -10694,6 +10694,11 @@ uint32_t tick_elapsed(uint32_t reference)
     4d88:	200000a8 	.word	0x200000a8
 
 00004d8c <system_pinmux_get_group_from_gpio_pin>:
+ *
+ * \return Base address of the associated PORT module.
+ */
+static inline PortGroup* system_pinmux_get_group_from_gpio_pin(
+		const uint8_t gpio_pin)
 {
     4d8c:	b580      	push	{r7, lr}
     4d8e:	b084      	sub	sp, #16
@@ -10715,9 +10720,12 @@ uint32_t tick_elapsed(uint32_t reference)
     4daa:	7812      	ldrb	r2, [r2, #0]
     4dac:	0952      	lsrs	r2, r2, #5
     4dae:	701a      	strb	r2, [r3, #0]
+
+	/* Array of available ports */
 	Port *const ports[PORT_INST_NUM] = PORT_INSTS;
     4db0:	4b0d      	ldr	r3, [pc, #52]	; (4de8 <system_pinmux_get_group_from_gpio_pin+0x5c>)
     4db2:	60bb      	str	r3, [r7, #8]
+
 	if (port_index < PORT_INST_NUM) {
     4db4:	230f      	movs	r3, #15
     4db6:	18fb      	adds	r3, r7, r3
@@ -10741,8 +10749,11 @@ uint32_t tick_elapsed(uint32_t reference)
     4dd8:	01db      	lsls	r3, r3, #7
     4dda:	18d3      	adds	r3, r2, r3
     4ddc:	e000      	b.n	4de0 <system_pinmux_get_group_from_gpio_pin+0x54>
+	} else {
+		Assert(false);
 		return NULL;
     4dde:	2300      	movs	r3, #0
+	}
 }
     4de0:	0018      	movs	r0, r3
     4de2:	46bd      	mov	sp, r7
@@ -10751,6 +10762,11 @@ uint32_t tick_elapsed(uint32_t reference)
     4de8:	41004400 	.word	0x41004400
 
 00004dec <port_get_group_from_gpio_pin>:
+ *
+ *  \return Base address of the associated PORT module.
+ */
+static inline PortGroup* port_get_group_from_gpio_pin(
+		const uint8_t gpio_pin)
 {
     4dec:	b580      	push	{r7, lr}
     4dee:	b082      	sub	sp, #8
@@ -10773,11 +10789,20 @@ uint32_t tick_elapsed(uint32_t reference)
     4e0c:	00004d8d 	.word	0x00004d8d
 
 00004e10 <port_get_config_defaults>:
+ *
+ *  \param[out] config  Configuration structure to initialize to default values
+ */
+static inline void port_get_config_defaults(
+		struct port_config *const config)
 {
     4e10:	b580      	push	{r7, lr}
     4e12:	b082      	sub	sp, #8
     4e14:	af00      	add	r7, sp, #0
     4e16:	6078      	str	r0, [r7, #4]
+	/* Sanity check arguments */
+	Assert(config);
+
+	/* Default configuration values */
 	config->direction  = PORT_PIN_DIR_INPUT;
     4e18:	687b      	ldr	r3, [r7, #4]
     4e1a:	2200      	movs	r2, #0
@@ -10798,6 +10823,11 @@ uint32_t tick_elapsed(uint32_t reference)
 	...
 
 00004e34 <port_pin_set_output_level>:
+ *  \param[in] level     Logical level to set the given pin to
+ */
+static inline void port_pin_set_output_level(
+		const uint8_t gpio_pin,
+		const bool level)
 {
     4e34:	b580      	push	{r7, lr}
     4e36:	b084      	sub	sp, #16
@@ -10825,6 +10855,8 @@ uint32_t tick_elapsed(uint32_t reference)
     4e5e:	409a      	lsls	r2, r3
     4e60:	0013      	movs	r3, r2
     4e62:	60bb      	str	r3, [r7, #8]
+
+	/* Set the pin to high or low atomically based on the requested level */
 	if (level) {
     4e64:	1dbb      	adds	r3, r7, #6
     4e66:	781b      	ldrb	r3, [r3, #0]
@@ -10834,6 +10866,9 @@ uint32_t tick_elapsed(uint32_t reference)
     4e6c:	68fb      	ldr	r3, [r7, #12]
     4e6e:	68ba      	ldr	r2, [r7, #8]
     4e70:	619a      	str	r2, [r3, #24]
+	} else {
+		port_base->OUTCLR.reg = pin_mask;
+	}
 }
     4e72:	e002      	b.n	4e7a <port_pin_set_output_level+0x46>
 		port_base->OUTCLR.reg = pin_mask;
@@ -10867,12 +10902,12 @@ void system_board_init(void)
     4e8e:	0018      	movs	r0, r3
     4e90:	4b12      	ldr	r3, [pc, #72]	; (4edc <system_board_init+0x54>)
     4e92:	4798      	blx	r3
-
-    // Configure LEDs as outputs, turn them off 
-    pin_conf.direction  = PORT_PIN_DIR_OUTPUT;    
+	pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
     4e94:	4b10      	ldr	r3, [pc, #64]	; (4ed8 <system_board_init+0x50>)
     4e96:	2201      	movs	r2, #1
     4e98:	701a      	strb	r2, [r3, #0]
+
+    // Configure LEDs as outputs, turn them off 
     port_pin_set_config(LED_GREEN_PIN, &pin_conf);
     4e9a:	4b0f      	ldr	r3, [pc, #60]	; (4ed8 <system_board_init+0x50>)
     4e9c:	0019      	movs	r1, r3
@@ -10936,12 +10971,12 @@ void system_board_init_for_battery_measure(void)
     4eee:	0018      	movs	r0, r3
     4ef0:	4b22      	ldr	r3, [pc, #136]	; (4f7c <system_board_init_for_battery_measure+0x94>)
     4ef2:	4798      	blx	r3
-
-    // Configure LEDs as outputs, turn them off 
     pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
     4ef4:	4b20      	ldr	r3, [pc, #128]	; (4f78 <system_board_init_for_battery_measure+0x90>)
     4ef6:	2201      	movs	r2, #1
     4ef8:	701a      	strb	r2, [r3, #0]
+	
+	// Configure LEDs as outputs, turn them off 
     port_pin_set_config(LED_RED_PIN, &pin_conf);
     4efa:	4b1f      	ldr	r3, [pc, #124]	; (4f78 <system_board_init_for_battery_measure+0x90>)
     4efc:	0019      	movs	r1, r3
@@ -10979,7 +11014,7 @@ void system_board_init_for_battery_measure(void)
     4f2c:	4b15      	ldr	r3, [pc, #84]	; (4f84 <system_board_init_for_battery_measure+0x9c>)
     4f2e:	4798      	blx	r3
     
-	// Configure the Enable of BT Module as output, turn in on
+	// Configure the Enable of BT Module as output, turn it on
     change_bt_enable(true);
     4f30:	2001      	movs	r0, #1
     4f32:	4b15      	ldr	r3, [pc, #84]	; (4f88 <system_board_init_for_battery_measure+0xa0>)
@@ -12940,6 +12975,11 @@ void change_bt_enable(bool enable)
     5e94:	41004400 	.word	0x41004400
 
 00005e98 <system_interrupt_enable_global>:
+ * \brief Enables global interrupts.
+ *
+ * Enables global interrupts in the device to fire any enabled interrupt handlers.
+ */
+static inline void system_interrupt_enable_global(void)
 {
     5e98:	b580      	push	{r7, lr}
     5e9a:	af00      	add	r7, sp, #0
@@ -14419,7 +14459,7 @@ void bt_poll_check()
     6758:	b580      	push	{r7, lr}
     675a:	af00      	add	r7, sp, #0
     // The poll_requested flag turns false into OCTO_USART.c file
-	//when receive the poll response message and when BT connects
+	//when receive the poll response message, when BT connects and is turned off after lose connection
     // If run this function and it stills true, the board didn't received the response
     if (poll_requested) 
     675c:	4b0b      	ldr	r3, [pc, #44]	; (678c <bt_poll_check+0x34>)

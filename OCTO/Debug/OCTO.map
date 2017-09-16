@@ -9480,7 +9480,7 @@ OUTPUT(OCTO.elf elf32-littlearm)
  .debug_line    0x000159ce      0x423 src/ASF/sam0/utils/syscalls/gcc/syscalls.o
  .debug_line    0x00015df1     0x126c src/main.o
 
-.debug_str      0x00000000    0x88cad
+.debug_str      0x00000000    0x88ce8
  .debug_str     0x00000000    0x7bdfe src/ASF/sam0/drivers/extint/extint_callback.o
                               0x7c769 (size before relaxing)
  .debug_str     0x0007bdfe     0x104d src/ASF/sam0/drivers/extint/extint_sam_d_r/extint.o
@@ -9523,24 +9523,24 @@ OUTPUT(OCTO.elf elf32-littlearm)
                               0x7d46e (size before relaxing)
  .debug_str     0x00085ae4      0x158 src/ASF/sam0/drivers/sercom/sercom_interrupt.o
                               0x7d24d (size before relaxing)
- .debug_str     0x00085c3c       0x75 src/ASF/common2/boards/user_board/init.o
-                              0x81611 (size before relaxing)
- .debug_str     0x00085cb1       0x66 src/ASF/common/utils/interrupt/interrupt_sam_nvic.o
+ .debug_str     0x00085c3c       0xb0 src/ASF/common2/boards/user_board/init.o
+                              0x81600 (size before relaxing)
+ .debug_str     0x00085cec       0x66 src/ASF/common/utils/interrupt/interrupt_sam_nvic.o
                               0x7bf26 (size before relaxing)
- .debug_str     0x00085d17     0x138c src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/clock.o
+ .debug_str     0x00085d52     0x138c src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/clock.o
                               0x7f0cc (size before relaxing)
- .debug_str     0x000870a3      0x1be src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/gclk.o
+ .debug_str     0x000870de      0x1be src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/gclk.o
                               0x7cbee (size before relaxing)
- .debug_str     0x00087261      0x179 src/ASF/sam0/drivers/system/pinmux/pinmux.o
+ .debug_str     0x0008729c      0x179 src/ASF/sam0/drivers/system/pinmux/pinmux.o
                               0x7c3c8 (size before relaxing)
- .debug_str     0x000873da       0x47 src/ASF/sam0/drivers/system/system.o
+ .debug_str     0x00087415       0x47 src/ASF/sam0/drivers/system/system.o
                               0x7bfd1 (size before relaxing)
- .debug_str     0x00087421      0xf0e src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.o
+ .debug_str     0x0008745c      0xf0e src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.o
                               0x67bf5 (size before relaxing)
- .debug_str     0x0008832f      0x76c src/ASF/sam0/utils/syscalls/gcc/syscalls.o
+ .debug_str     0x0008836a      0x76c src/ASF/sam0/utils/syscalls/gcc/syscalls.o
                                0x7294 (size before relaxing)
- .debug_str     0x00088a9b      0x212 src/main.o
-                              0x81f04 (size before relaxing)
+ .debug_str     0x00088ad6      0x212 src/main.o
+                              0x81ef3 (size before relaxing)
 
 .debug_frame    0x00000000     0x33c4
  .debug_frame   0x00000000      0x128 src/ASF/sam0/drivers/extint/extint_callback.o
