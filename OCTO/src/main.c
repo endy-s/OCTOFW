@@ -178,7 +178,6 @@ void configure_OCTO_peripheral()
 	
 // DAC - LED stripe
 	configure_dac();
-	light_bcap_previous_mode = E_LIGHT_ON;
 	light_state.mode = E_LIGHT_OFF;
 	light_state.freq = E_LIGHT_MEDIUM;
 	light_state.low_power_threshold = 10;
@@ -186,6 +185,8 @@ void configure_OCTO_peripheral()
 	light_state.led_bright = LIGHT_MIN;
 	light_state.led_max_bright = LIGHT_MAX/2;
 	light_state.led_low_power_time = LOW_POWER_LIGHT_ON_TIME;
+	light_bcap_previous_mode = E_LIGHT_ON;
+	fade_bright_step = light_state.led_max_bright/LIGHT_MIN;
 
 //ADC - VMPPT & TEMP
 	// Initial configuration and read of the Internal ADC - Copy and paste this code into the function of reading
@@ -249,6 +250,7 @@ void change_light_freq(E_LIGHT_FREQ new_freq)
 void change_light_bright(uint16_t perthousand)
 {
     light_state.led_max_bright = perthousand;
+	fade_bright_step = light_state.led_max_bright/LIGHT_MIN;
 }
 
 void change_light_threshold(uint16_t new_threshold)
@@ -367,9 +369,9 @@ bool update_bright()
          
     if (light_state.led_rising)
     {
-        light_state.led_bright += light_state.led_max_bright/LIGHT_MIN;
+        light_state.led_bright += fade_bright_step;
         
-        if (light_state.led_bright >= light_state.led_max_bright-1)
+        if (light_state.led_bright >= light_state.led_max_bright - fade_bright_step)
         {
             light_state.led_rising = false;
             cycle_complete = true;
@@ -377,9 +379,9 @@ bool update_bright()
     }
     else
     {
-        light_state.led_bright -=  light_state.led_max_bright/LIGHT_MIN;
+        light_state.led_bright -= fade_bright_step;
         
-        if (light_state.led_bright <= LIGHT_MIN-1)
+        if (light_state.led_bright <= LIGHT_MIN + fade_bright_step)
         {
             light_state.led_rising = true;
             cycle_complete = true;

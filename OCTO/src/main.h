@@ -25,7 +25,7 @@
 #define BATT_MAX 4340
 #define BATT_MIN 3300
 
-#define LOW_POWER_LIGHT_ON_TIME 3000	//30000
+#define LOW_POWER_LIGHT_ON_TIME 30000	//30000
 #define LOW_POWER_LIGHT_STROBE_TIME 2000	//1500
 
 #define BCAP_THRESOLD_COUNTER 20
@@ -37,6 +37,7 @@ uint32_t led_timer, bcap_timer, bt_timer, low_power_timer;
 uint32_t bcap_counter, bcap_touch_counter, bcap_notouch_counter;
 uint32_t bcap_high, bcap_low, bcap_calibrate_counter, bcap_limit_temp;
 uint32_t battery_level;
+uint16_t fade_bright_step;
 int		 strobe_counter;
 bool     low_power_update_app;
 bool     batt_reached_max, batt_reached_low_power;
