@@ -58,7 +58,6 @@ bool configure_adc_TEMP (void)
 }
 
 
-
 void turn_off_adc(void)
 {
     adc_disable(&adc_instance);
@@ -73,7 +72,7 @@ void get_value_VMPPT (uint32_t *value, uint32_t *converted)
     
     do {
         /* Wait for conversion to be done and read out result */
-    } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = ((VMPPT_PULL_UP + VMPPT_PULL_DOWN) * D_ADC_VREF * adc_reading / VMPPT_PULL_DOWN) / D_ADC_RESOLUTION;
+    } while (adc_read(&adc_instance, &adc_reading) == STATUS_BUSY);        reading = (((D_ADC_VREF * adc_reading) / D_ADC_RESOLUTION) * (VMPPT_PULL_UP + VMPPT_PULL_DOWN) / VMPPT_PULL_DOWN);
     
     *value = adc_reading;
     *converted = reading;

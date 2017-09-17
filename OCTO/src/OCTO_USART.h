@@ -11,8 +11,6 @@
 
 #include <asf.h>
 
-//#define DBG_MODE
-
 bool bt_connected;
 
 struct usart_module bt_usart_instance;

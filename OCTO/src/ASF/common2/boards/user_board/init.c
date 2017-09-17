@@ -19,6 +19,8 @@ void board_init(void);
 #  pragma weak board_init=system_board_init
 #endif
 
+struct port_config pin_conf;
+
 void system_board_init(void)
 {
 	/* This function is meant to contain board-specific initialization code
@@ -26,11 +28,36 @@ void system_board_init(void)
 	 * specific board configuration, found in conf_board.h.
 	 */
     
-    struct port_config pin_conf;
+// Configure the board after the battery measurement
+// Don't need to configure: 
+// Red LED pins, GG and BT enable and BCAP input
     port_get_config_defaults(&pin_conf);
+	pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
 
     // Configure LEDs as outputs, turn them off 
+    port_pin_set_config(LED_GREEN_PIN, &pin_conf);
+    port_pin_set_output_level(LED_GREEN_PIN, LED_GREEN_ACTIVE);
+
+    // Configure the Enable of LED Stripe as output, turn it on 
+    port_pin_set_config(LED_DRIVER_PIN, &pin_conf);
+    port_pin_set_output_level(LED_DRIVER_PIN, LED_DRIVER_ACTIVE);
+	
+    // Configure the USB Charge external device Enable
+	port_pin_set_config(USB_EN_ENABLE_PIN, &pin_conf);
+	port_pin_set_output_level(USB_EN_ENABLE_PIN, USB_EN_ENABLE_ACTIVE);
+}
+
+void system_board_init_for_battery_measure(void)
+{
+	/* This function is meant to contain board-specific initialization code
+	 * for, e.g., the I/O pins. The initialization can rely on application-
+	 * specific board configuration, found in conf_board.h.
+	 */
+    
+    port_get_config_defaults(&pin_conf);
     pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+	
+	// Configure LEDs as outputs, turn them off 
     port_pin_set_config(LED_RED_PIN, &pin_conf);
     port_pin_set_output_level(LED_RED_PIN, LED_RED_INACTIVE);
     
@@ -39,28 +66,30 @@ void system_board_init(void)
 
     // Configure the Enable of LED Stripe as output, turn it on 
     port_pin_set_config(LED_DRIVER_PIN, &pin_conf);
-    port_pin_set_output_level(LED_DRIVER_PIN, LED_DRIVER_ACTIVE);
+    port_pin_set_output_level(LED_DRIVER_PIN, LED_DRIVER_INACTIVE);
     
-    // Configure the Enable of BT Module as output, turn it on
-    port_pin_set_config(BT_ENABLE_PIN, &pin_conf);
-    port_pin_set_output_level(BT_ENABLE_PIN, BT_ENABLE_ACTIVE);
-    
-    // Configure the Capacitive Button Pins as output, turn it off
-    port_pin_set_config(BCAP_ENABLE_PIN, &pin_conf);
-    port_pin_set_output_level(BCAP_ENABLE_PIN, BCAP_ENABLE_INACTIVE);
+	// Configure the Enable of BT Module as output, turn it on
+    change_bt_enable(true);
     
     // Configure the Charge Complete Pin for the Gas Gauge Module as output, turn it off
     port_pin_set_config(GAUGE_CC_ENABLE_PIN, &pin_conf);
     port_pin_set_output_level(GAUGE_CC_ENABLE_PIN, GAUGE_CC_ENABLE_INACTIVE);
+	
+	// Configure the USB Charge external device Disabled
+	port_pin_set_config(USB_EN_ENABLE_PIN, &pin_conf);
+	port_pin_set_output_level(USB_EN_ENABLE_PIN, USB_EN_ENABLE_INACTIVE);
 
+	/* Set buttons as inputs */
+	pin_conf.direction  = PORT_PIN_DIR_INPUT;
+	pin_conf.input_pull = PORT_PIN_PULL_NONE;
+	port_pin_set_config(INPUT_BCAP_PIN, &pin_conf);
+}
 
-/* Set buttons as inputs */
-pin_conf.direction  = PORT_PIN_DIR_INPUT;
-pin_conf.input_pull = PORT_PIN_PULL_NONE;
-port_pin_set_config(DRIVER_BCAP_PIN, &pin_conf);
-
-    /* Set buttons as inputs */
-    //pin_conf.direction  = PORT_PIN_DIR_INPUT;
-    //pin_conf.input_pull = PORT_PIN_PULL_NONE;
-    //port_pin_set_config(BCAP_RX_PIN, &pin_conf);
+void change_bt_enable(bool enable)
+{
+	port_get_config_defaults(&pin_conf);
+	pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
+	
+	port_pin_set_config(BT_ENABLE_PIN, &pin_conf);
+	port_pin_set_output_level(BT_ENABLE_PIN, (BT_ENABLE_ACTIVE && enable));
 }
