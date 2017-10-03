@@ -240,6 +240,8 @@ printf("\n\nOCTO Board - %s, %s\n\n", __DATE__, __TIME__);
 void change_light_mode(E_LIGHT_MODE new_mode)
 {
     light_state.mode = new_mode;
+	light_state.led_rising = false;
+	strobe_counter = 0;
 }
 
 void change_light_freq(E_LIGHT_FREQ new_freq)
@@ -298,7 +300,6 @@ void manage_low_power_light()
         if (light_state.mode == E_LIGHT_ON)
         {
             change_light_mode(E_LIGHT_STROBE);
-			light_state.led_rising = false;
 			light_state.led_low_power_time = LOW_POWER_LIGHT_STROBE_TIME;
         }
         else if (light_state.mode == E_LIGHT_STROBE)
@@ -334,7 +335,6 @@ void drive_light()
     {
         if (tick_elapsed(led_timer) % ((light_state.freq * 5) + 9) == 0)
         {
-            static int strb_counter = 0;
 			led_timer = get_tick();
             
             if (light_state.mode == E_LIGHT_FADE)
@@ -345,15 +345,15 @@ void drive_light()
             
             if (light_state.mode == E_LIGHT_STROBE)
             {
-				if (strb_counter > LIGHT_MAX/2)
+				if (strobe_counter > LIGHT_MAX/2)
 				{
-					strb_counter = 0;
+					strobe_counter = 0;
 					light_state.led_rising = !light_state.led_rising;
 					turn_lights(light_state.led_rising);
 				}
 				else
 				{
-					strb_counter++;
+					strobe_counter++;
 				}
             }
         }
